@@ -3,9 +3,10 @@ import nltk
 from fractions import Fraction
 import re
 from bs4 import BeautifulSoup
+import scaling
 
 
-measurement=["cup","cups","tablespoon","tablespoons","teaspoon","teaspoons","spoon","cloves","jars","pound","pinch","links","link","package"]
+measurement=["cup","cups","tablespoon","tablespoons","teaspoon","teaspoons","spoon","cloves","jars","pound","pinch","links","link","package","can","cans","ounce","ounces"]
 
 class RecipeFetcher:
     search_base_url = 'https://www.allrecipes.com/search/results/?wt=%s&sort=re'
@@ -15,6 +16,8 @@ class RecipeFetcher:
     def split_ingredient(self, val):
         val=val.replace("or to taste","")
         val=val.replace("to taste","")
+        val = val.replace("or more as needed", "")
+        val = val.replace("more if needed", "")
         ing={}
         ing["prep"]=""
         ing["qty"]=0
@@ -70,6 +73,7 @@ class RecipeFetcher:
         Extracts the "Ingredients" , "Directions"   
         '''
         results = {}
+        print("ini",type(results))
         lis=[]
         lis1=[]
         lis2=[]
@@ -109,7 +113,7 @@ class RecipeFetcher:
             # print(i.text)
             lis2.append(i.text)
         results['nutrients'] =lis2
-
+        print("fin",type(results))
         print(results)
         return results
 
@@ -117,5 +121,7 @@ class RecipeFetcher:
 rf = RecipeFetcher()
 meat_lasagna = rf.search_recipes('meat lasagna')[0]
 print(meat_lasagna)
+print(type(meat_lasagna))
+#
 results=rf.scrape_recipe(meat_lasagna)
-
+res=scaling.scale(results,2,"down")

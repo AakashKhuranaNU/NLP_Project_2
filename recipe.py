@@ -7,7 +7,7 @@ nlp = spacy.load("en_core_web_sm")
 ingredients = ['lasagna noodles', 'ground beef', 'garlic', 'garlic powder', 'oregano', 'salt',
                'black pepper', 'cottage cheese', 'eggs', 'parmesan cheese', 'tomato-basil pasta sauce',
                'mozzarella cheese']
-
+    
 recipe = ['Preheat oven to 350 degrees F (175 degrees C).',
           'Fill a large pot with lightly salted water and bring to a rolling boil over high heat. Once the water is boiling, add the lasagna noodles a few at a time, and return to a boil. Cook the pasta uncovered, stirring occasionally, until the pasta has cooked through, but is still firm to the bite, about 10 minutes. Remove the noodles to a plate.',
           'Place the ground beef into a skillet over medium heat, add the garlic, garlic powder, oregano, salt, and black pepper to the skillet. Cook the meat, chopping it into small chunks as it cooks, until no longer pink, about 10 minutes. Drain excess grease.',

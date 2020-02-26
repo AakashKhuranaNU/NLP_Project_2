@@ -1,10 +1,60 @@
 import requests
+import nltk
+from fractions import Fraction
 import re
 from bs4 import BeautifulSoup
 
 
+measurement=["cup","cups","tablespoon","tablespoons","teaspoon","teaspoons","spoon","cloves","jars","pound","pinch","links","link","package"]
+
 class RecipeFetcher:
     search_base_url = 'https://www.allrecipes.com/search/results/?wt=%s&sort=re'
+
+
+
+    def split_ingredient(self, val):
+        val=val.replace("or to taste","")
+        val=val.replace("to taste","")
+        ing={}
+        ing["prep"]=""
+        ing["qty"]=0
+        ing["alt_qty"]=""
+        ing["unit"]=""
+        ing["ingredient"]=""
+        qty=float(0)
+        sp=val.split()
+        tag=nltk.pos_tag(sp)
+        # print("tag",tag)
+        for i in tag:
+            if "VB" in i[1]:
+                ing["prep"]=i[0]
+        # print("splits",sp)
+        str=""
+        str1=""
+        for j in sp:
+            # print(j)
+            if j in measurement:
+                # print("measurement",j)
+                ing["unit"]=j
+            elif "(" in j or ")" in j:
+                str1=str1+" "+j
+            else :
+                flag=0
+                for i in j:
+                    if i.isdigit() :
+                        flag=1
+                        break
+                if flag==1:
+                    # print("qty",j)
+                    qty=qty+float(Fraction(j))
+                elif j not in ing["prep"]:
+                    str=str+" "+j
+
+        ing["ingredient"]=str.strip()
+        ing["alt_qty"]=str1.strip()
+        ing["qty"]=qty
+        print("ingr",ing)
+        return ing
 
     def search_recipes(self, keywords):
         search_url = self.search_base_url % (keywords.replace(' ', '+'))
@@ -17,7 +67,7 @@ class RecipeFetcher:
 
     def scrape_recipe(self, recipe_url):
         '''
-        Extracts the "Ingredients" , "Directions"
+        Extracts the "Ingredients" , "Directions"   
         '''
         results = {}
         lis=[]
@@ -31,13 +81,16 @@ class RecipeFetcher:
             # print(i)
             print(i.text)
             lis.append(i.text)
-        results['ingredients'] =lis
-
+        lis3=[]
+        for i in lis:
+            a=self.split_ingredient(i)
+            lis3.append(a)
+        results["ingredients"]=lis3
         # lis.clear()
         # print(lis)
         for i in page_graph.find_all('span', {'class', "recipe-directions__list--item"}):
             # print(i)
-            print(i.text)
+            # print(i.text)
             if i.text.strip():
                 lis1.append(i.text.strip())
         results['directions'] =lis1

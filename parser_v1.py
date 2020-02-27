@@ -2,6 +2,7 @@ import requests
 import re
 from bs4 import BeautifulSoup
 from nltk.tokenize import word_tokenize
+from nltk.tokenize.treebank import TreebankWordDetokenizer
 import json
 
 
@@ -123,6 +124,7 @@ class MeatVegetarian:
                      vegetarian_subs=self.vegetarian_substitutes))
 
 
+# Class for transforming the given recipe
 class TransformRecipe:
     def __init__(self, url, keywords):
         self.transformed_recipe = {
@@ -154,16 +156,46 @@ class TransformRecipe:
                     substitute_found = True
             if not substitute_found:
                 self.transformed_recipe['ingredients'].append(sentence)
-        print(self.transformed_recipe)
+
+    def transform_directions(self):
+        foods = self.load_food_properties()
+        for sentence in self.rf.results['directions']:
+            # substitute_found = False
+            tokenized = word_tokenize(sentence.lower())
+            for k, v in foods.items():
+                if k in tokenized:
+                    mv = MeatVegetarian(k, foods[k][0], foods[k][1], foods[k][2], foods[k][3])
+                    ind = tokenized.index(k)
+                    tokenized[ind] = mv.vegetarian_substitutes[0]
+                    # self.transformed_recipe['directions'].append(mv.vegetarian_substitutes[0])
+            untokenized = TreebankWordDetokenizer().detokenize(tokenized)
+            # if not substitute_found:
+            self.transformed_recipe['directions'].append(untokenized)
 
     def master_transform(self):
         self.transform_ingredients()
+        self.transform_directions()
+
+    def pretty_printer(self):
+        for k, v in self.transformed_recipe.items():
+            print("{k}: ".format(k=k))
+            for x in v:
+                print("{x}".format(x=x))
+                print("\n")
+            print("\n")
 
 
+# TODO: Search for words before and after the found target word
+# If it's a new word, remove the element at that indice (Ex: "ground beef" ->
+# Remove "ground" and replace "beef" with "tofu"
+
+# TODO: Have a list of flag words that you replace with the substitute
+# (Ex: "cook the meat" -> "cook the tofu")
 def main():
     transform = TransformRecipe(url='https://www.allrecipes.com/search/results/?wt=%s&sort=re',
                                 keywords='meat lasagna')
     transform.master_transform()
+    transform.pretty_printer()
 
 
 if __name__== "__main__":

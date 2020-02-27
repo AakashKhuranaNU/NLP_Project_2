@@ -1,0 +1,43 @@
+{
+  "chicken": [
+    "Meat",
+    [
+      "fried chicken",
+      "chicken parm"
+    ],
+    [
+      "fry",
+      "bake"
+    ],
+    [
+      "tofu",
+      "seitan"
+    ]
+  ],
+  "beef": [
+    "Meat",
+    [
+      "italian sausage"
+    ],
+    [
+      "grilling",
+      "braising"
+    ],
+    [
+      "tofu",
+      "seitan"
+    ]
+  ],
+  "tofu": [
+    "Veggie",
+    [
+      "General Tso's Tofu"
+    ],
+    [
+      "pan-frying"
+    ],
+    [
+      "tofu"
+    ]
+  ]
+}

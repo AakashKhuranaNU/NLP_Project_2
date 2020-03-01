@@ -50,5 +50,19 @@
         "baking": 20
       },
       "avg_calorie": 150
+    },
+  "egg":
+    {
+      "unit": "",
+      "food_category": "meat",
+      "related_names": ["eggs", "large eggs", "medium eggs", "small eggs"],
+      "primary_methods": ["bake", "baked", "hard-boiled", "hard boiled",
+        "hard-cooked", "hard cooked", "fried", "poached", "baste", "poach", "scramble", "scrambled"],
+      "vegetarian_substitutes": ["seitan", "tofu"],
+      "time_to_cook": {
+        "grilling": 10,
+        "baking": 20
+      },
+      "avg_calorie": 150
     }
 }

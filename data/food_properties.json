@@ -1,43 +1,54 @@
 {
-  "chicken": [
-    "Meat",
-    [
-      "fried chicken",
-      "chicken parm"
-    ],
-    [
-      "fry",
-      "bake"
-    ],
-    [
-      "tofu",
-      "seitan"
-    ]
-  ],
-  "beef": [
-    "Meat",
-    [
-      "italian sausage"
-    ],
-    [
-      "grilling",
-      "braising"
-    ],
-    [
-      "tofu",
-      "seitan"
-    ]
-  ],
-  "tofu": [
-    "Veggie",
-    [
-      "General Tso's Tofu"
-    ],
-    [
-      "pan-frying"
-    ],
-    [
-      "tofu"
-    ]
-  ]
+  "chicken":
+    {
+      "unit": "pound",
+      "food_category": "meat",
+      "related_names": ["grilled chicken", "fried chicken"],
+      "primary_methods": ["grilling"],
+      "vegetarian_substitutes": ["tofu", "seitan"],
+      "time_to_cook": {
+        "grilling": 10,
+        "baking": 20
+      },
+      "avg_calorie": 150
+    },
+  "beef":
+    {
+      "unit": "pound",
+      "food_category": "meat",
+      "related_names": ["lean ground beef", "ground beef", "beef"],
+      "primary_methods": ["grilling", "braising"],
+      "vegetarian_substitutes": ["tofu", "seitan"],
+      "time_to_cook": {
+        "grilling": 10,
+        "baking": 20
+      },
+      "avg_calorie": 150
+    },
+  "tofu":
+    {
+      "unit": "pound",
+      "food_category": "Dairy",
+      "related_names": [],
+      "primary_methods": ["grilling", "braising"],
+      "vegetarian_substitutes": ["tofu"],
+      "time_to_cook": {
+        "grilling": 10,
+        "baking": 20
+      },
+      "avg_calorie": 150
+    },
+    "seitan":
+    {
+      "unit": "pound",
+      "food_category": "Breads",
+      "related_names": [],
+      "primary_methods": ["grilling", "braising"],
+      "vegetarian_substitutes": ["seitan"],
+      "time_to_cook": {
+        "grilling": 10,
+        "baking": 20
+      },
+      "avg_calorie": 150
+    }
 }

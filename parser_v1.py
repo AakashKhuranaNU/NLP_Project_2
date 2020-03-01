@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 import scaling
 
 
-measurement=["cup","cups","tablespoon","tablespoons","teaspoon","teaspoons","spoon","cloves","jars","pound","pinch","links","link","package","can","cans","ounce","ounces"]
+measurement=["cup","cups","tablespoon","tablespoons","teaspoon","teaspoons","spoon","cloves","jars","pound", "pounds","pinch","links","link","package","can","cans","ounce","ounces"]
 
 class RecipeFetcher:
     search_base_url = 'https://www.allrecipes.com/search/results/?wt=%s&sort=re'
@@ -37,7 +37,7 @@ class RecipeFetcher:
         for j in sp:
             # print(j)
             if j in measurement:
-                # print("measurement",j)
+                print("measurement",j)
                 ing["unit"]=j
             elif "(" in j or ")" in j:
                 str1=str1+" "+j
@@ -119,9 +119,10 @@ class RecipeFetcher:
 
 
 rf = RecipeFetcher()
-meat_lasagna = rf.search_recipes('meat lasagna')[0]
-print(meat_lasagna)
-print(type(meat_lasagna))
+# meat_lasagna = rf.search_recipes('meat lasagna')[0]
+print("Please input URL")
+url=input()
+# print(type(meat_lasagna))
 #
-results=rf.scrape_recipe(meat_lasagna)
+results=rf.scrape_recipe(url)
 res=scaling.scale(results,2,"down")

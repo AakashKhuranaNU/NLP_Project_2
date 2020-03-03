@@ -12,8 +12,9 @@ import random
 nlp = spacy.load("en_core_web_sm")
 
 measurement = ["cup", "cups", "tablespoon", "tablespoons", "teaspoon", "teaspoons", "spoon", "cloves", "jars", "pound",
-               "pinch", "links", "link", "package", "can", "cans", "ounce", "ounces"]
+               "pounds", "pinch", "links", "link", "package", "can", "cans", "ounce", "ounces"]
 
+# TODO: Add more primary cooking methods, including present tense of them (Ex: "grilling")
 PRIMARY_COOKING_METHODS = ['bake', 'steam', 'grill', 'roast', 'boil', 'fry', 'barbeque', 'baste', 'broil', 'poach',
                            'freeze', 'cure', 'saute', 'cook']
 
@@ -54,7 +55,7 @@ TEMP = ['degrees']
 
 class RecipeFetcher:
 
-    def __init__(self, url, keywords):
+    def __init__(self, url):
         # Ingredients_Sentence stores each original ingredient before it was put into our data structure
         # Ingredients stores each ingredient and it's prep, qty, etc
         # Directions_Sentence stores each original direction step before it was tokenized and broken apart
@@ -67,13 +68,17 @@ class RecipeFetcher:
             "directions_data": {}
         }
         self.url = url
-        self.keywords = keywords
 
     def split_ingredient(self, val):
         val = val.replace("or to taste", "")
         val = val.replace("to taste", "")
         val = val.replace("or more as needed", "")
         val = val.replace("more if needed", "")
+        val = val.replace(", cut in half across the grain", "")
+        val = val.replace(", drained and pressed", "")
+        val = val.replace(", drained and sliced into large chunks", "")
+        val = val.replace(", drained", "")
+        val = val.replace(", cubed", "")
         ing = {
             "prep": "",
             "qty": 0,
@@ -121,6 +126,7 @@ class RecipeFetcher:
                 method = {'primary_method': [], 'secondary_method': [], 'tool': [], 'ingredients': []}
                 doc = nlp(s.lower())
                 for ing in self.results['ingredients']:
+                    # print(ing)
                     if ing['ingredient'] in s.lower():
                         method['ingredients'].append(ing)
                     elif ing['json_obj'] != {}:
@@ -139,6 +145,8 @@ class RecipeFetcher:
                             if token.lemma_ not in method['tool']:
                                 method['tool'].append(token.lemma_)
                     elif token.pos_ == 'NUM' and 'inch' not in token.text:
+                        if not float(Fraction(token.text)).is_integer():
+                            continue
                         table = str.maketrans('', '', string.punctuation)
                         temp = [w.translate(table) for w in s.split()]
                         ind = temp.index(token.text)
@@ -148,14 +156,14 @@ class RecipeFetcher:
                             method['temp'] = [token.text, temp[ind + 1], temp[ind + 2]]
                 self.results['directions_data'][r][s] = method
 
-    def search_recipes(self):
-        search_url = self.url % (self.keywords.replace(' ', '+'))
-
-        page_html = requests.get(search_url)
-        page_graph = BeautifulSoup(page_html.content)
-
-        return [recipe.a['href'] for recipe in \
-                page_graph.find_all('div', {'class': 'grid-card-image-container'})]
+    # def search_recipes(self):
+    #     search_url = self.url % (self.keywords.replace(' ', '+'))
+    #
+    #     page_html = requests.get(search_url)
+    #     page_graph = BeautifulSoup(page_html.content)
+    #
+    #     return [recipe.a['href'] for recipe in \
+    #             page_graph.find_all('div', {'class': 'grid-card-image-container'})]
 
     def scrape_recipe(self, recipe_url):
         '''
@@ -199,98 +207,46 @@ class RecipeFetcher:
     def compare_to_db(self):
         foods = self.load_food_properties()
         for ingredient in self.results['ingredients']:
+            print(ingredient)
             for food_key, prop in foods.items():
+                if prop['related_names']:
+                    if ingredient['ingredient'] in prop['related_names']:
+                        idx = self.results['ingredients'].index(ingredient)
+                        self.results['ingredients'][idx]['json_obj'] = prop
+                        break
                 if food_key in ingredient['ingredient']:
                     idx = self.results['ingredients'].index(ingredient)
                     self.results['ingredients'][idx]['json_obj'] = prop
                     break
 
     def search_and_scrape(self):
-        food = self.search_recipes()[0]
-        self.scrape_recipe(food)
+        self.scrape_recipe(self.url)
         self.compare_to_db()
         self.parse_directions()
-        print("\n DIRECTIONS_DATA: \n")
-        for k, v in self.results['directions_data'].items():
-            print("{k}: {v}".format(k=k, v=v))
-            print("\n")
-        print("\n DIRECTIONS_SENTENCE: \n")
-        print(self.results['directions_sentence'])
-        print("\n INGREDIENTS_SENTENCE: \n")
-        print(self.results['ingredients_sentence'])
+        # print("\n DIRECTIONS_DATA: \n")
+        # for k, v in self.results['directions_data'].items():
+        #     print("{k}: {v}".format(k=k, v=v))
+        #     print("\n")
+        # print("\n DIRECTIONS_SENTENCE: \n")
+        # print(self.results['directions_sentence'])
+        # print("\n INGREDIENTS_SENTENCE: \n")
+        # print(self.results['ingredients_sentence'])
         print("\n INGREDIENTS: \n")
         print(self.results['ingredients'])
 
 
-"""
-List of Vegetarian Substitutes:
-{
-Jackfruit: ["Pulled Pork", "Chicken", "Tuna"],
-Aquafaba (This goes into making things like brownies and other baked goods): ["Egg Whites", "Frosting", "Mayo"],
-
-"""
-
-"""
-JSON Data:
-1. Create a list of substitutes for all types of meat
-2. Create a list of primary cooking methods for each type of food (meat, substitutes, vegetables, etc)
-3. Create a list of tools that is associated with each primary cooking method
-4. Create a list of measurements associated with each food
-
-"""
-
-"""
-Steps for coding:
-1. Parse the ingredients
-2. Look for any meat words (ground beef, pulled pork, etc)
-3. Add the ingredients that don't belong in the meat category to a new list of ingredients along with
-   ingredient replacements for meat (and it's measurement)
-4. Also add the old ingredients to a temp_dict that will be used to parse directions. ({"ground beef": "vegan beef"})
-5. Any directions that have meat, will be replaced with the substitute value along with it's primary cooking method.
-
-
-"""
-
-# Class for storing information regarding
-"""
-came_from = The properties of the ingredient that we are transforming from
-ingredient_name = Name of the substitute ingredient
-food_category = (Ex: "Meat", "Dairy" or "Breads")
-primary_methods = (Ex: "Fry", "Boil") for the substitute ingredient
-avg_calorie = Average Calorie for 1 cup of this ingredient
-
-
-"""
-
-
-class SubstituteFood:
-    def __init__(self, came_from, substitute_ingredient_name, food_category, primary_methods, avg_calorie):
-        self.came_from = came_from
-        self.substitute_ingredient_name = substitute_ingredient_name
-        self.food_category = food_category
-        self.primary_methods = primary_methods
-        self.avg_calorie = avg_calorie
-
-    def print_food(self):
-        print("Came_From: {came_from}, \nSubstitute_Ingredient_Name: {ingredient_name}, "
-              "\nFood_Category: {food_category}, "
-              "\nPrimary_Methods: {primary_methods}, \nAvg_Calorie: {avg_calorie}".
-              format(came_from=self.came_from, ingredient_name=self.substitute_ingredient_name,
-                     food_category=self.food_category, primary_methods=self.primary_methods,
-                     avg_calorie=self.avg_calorie))
-
-
 # Class for transforming the given recipe
 class TransformRecipe:
-    # This entire init can have everything removed except for RF for now
-    def __init__(self, url, keywords):
+    # This entire init can have everything removed except for 'rf' and 'to_or_from_vegetarian' for now
+    def __init__(self, url, to_or_from_vegetarian):
         self.transformed_recipe = {
             "ingredients": [],
             "directions": [],
             "nutrients": []
         }
         self.food_properties_found = []
-        self.rf = RecipeFetcher(url=url, keywords=keywords)
+        self.rf = RecipeFetcher(url=url)
+        self.to_or_from_vegetarian = to_or_from_vegetarian
 
     @staticmethod
     # Loads our local DB
@@ -356,12 +312,14 @@ class TransformRecipe:
                 if props['ingredients'] is not None:
                     # Loop through all ingredients found within the tokenized sentence
                     for ingredient in props['ingredients']:
+                        # print(ingredient)
                         # If ingredient with a need for substitute was not already found
                         # and ingredient was found in our local DB
                         if ingredient['ingredient'] not in substitutes and ingredient['json_obj'] != {}:
                             ingr_data = ingredient['json_obj']
+                            # print(ingr_data)
                             # Consider only substituting if it's meat
-                            if ingr_data['food_category'] == 'meat':
+                            if ingr_data['food_category'] == 'meat' and self.to_or_from_vegetarian is True:
                                 # If the meat in question has related names and it's not in the dictionary
                                 # that stores the (key) meat substitute and (val) related names
                                 if ingr_data['related_names'] != [] and \
@@ -379,6 +337,25 @@ class TransformRecipe:
                                 if substitute_ing == "" and ingr_data['vegetarian_substitutes'] is not None:
                                     substitute_ing = random.choice(ingr_data['vegetarian_substitutes'])
                                 substitutes[ingredient['ingredient']] = substitute_ing
+                            elif ingr_data['food_category'] != 'meat' and self.to_or_from_vegetarian is False:
+                                # If the vegetarian ingredient in question has
+                                # related names and it's not in the dictionary
+                                # that stores the (key) meat and (val) related names
+                                if ingr_data['related_names'] != [] and \
+                                        ingredient['ingredient'] not in ingredient_related_names:
+                                    ingredient_related_names[ingredient['ingredient']] = ingr_data['related_names']
+                                substitute_ing = ""
+                                # Loop through meat substitutes for the ingredient in question
+                                for substitute in ingr_data['vegetarian_substitutes']:
+                                    # If a primary method was found in the tokenized sentence,
+                                    # see if a meat substitute has the same primary method
+                                    if props['primary_method'] != []:
+                                        if props['primary_method'][0] in foods[substitute]['primary_methods']:
+                                            substitute_ing = substitute
+                                # If no substitute was found with the same primary method, choose random substitute
+                                if substitute_ing == "" and ingr_data['vegetarian_substitutes'] is not None:
+                                    substitute_ing = random.choice(ingr_data['vegetarian_substitutes'])
+                                substitutes[ingredient['ingredient']] = substitute_ing
             # Loop through the dictionary of all items that need to be substituted
             for food, sub_food in substitutes.items():
                 # Find the most relative name ("Ground Beef" versus just "Beef")
@@ -386,12 +363,12 @@ class TransformRecipe:
                 # If there is a sorted list of related names
                 if sorted_related_names:
                     for sorted_name in sorted_related_names:
-                        # If the ingredient that needs to be substituted is in the sentence, replace it
-                        if sorted_name in self.rf.results['directions_sentence'][directions_idx]:
+                        if sorted_name in self.rf.results['directions_sentence'][directions_idx] and \
+                                sorted_name.isalpha():
+                            print(sorted_name)
                             direction = self.rf.results['directions_sentence'][directions_idx]
                             direction = direction.replace(sorted_name, sub_food)
                             self.rf.results['directions_sentence'][directions_idx] = direction
-                            break
         return substitutes, foods
 
     @staticmethod
@@ -400,6 +377,7 @@ class TransformRecipe:
     def most_relative_name(ingredient_related_names, ingredient):
         if ingredient_related_names[ingredient]:
             sorted_related_names = sorted(ingredient_related_names[ingredient], key=len, reverse=True)
+            sorted_related_names.append('meat')
             return sorted_related_names
         return []
 
@@ -407,25 +385,37 @@ class TransformRecipe:
     # Such as choosing a vegetarian substitute with the same cooking method
     def master_transform(self):
         self.rf.search_and_scrape()
+        # to_or_from_vegetarian needs to be marked True for meat -> vegetarian and False for opposite
+        print(self.rf.results['directions_sentence'])
         substitutes, foods_db = self.transform_directions()
+        print(self.rf.results['directions_sentence'])
         self.transform_ingredients(substitutes=substitutes, foods_db=foods_db)
+        self.pretty_printer(substitutes=substitutes)
 
-    def pretty_printer(self):
-        for k, v in self.transformed_recipe.items():
-            print("{k}: ".format(k=k))
-            for x in v:
-                print("{x}".format(x=x))
-                print("\n")
-            print("\n")
+    def pretty_printer(self, substitutes):
+        if substitutes:
+            print("\n Ingredient Changelog: \n")
+            for ingr, sub in substitutes.items():
+                print("{ingr}: {sub}".format(ingr=ingr, sub=sub))
+        print("\n INGREDIENTS: \n")
+        for ingredient in self.rf.results['ingredients_sentence']:
+            print(ingredient)
+        print("\n DIRECTIONS: \n")
+        for direction in self.rf.results['directions_sentence']:
+            print(direction)
 
 
 def main():
-    transform = TransformRecipe(url='https://www.allrecipes.com/search/results/?wt=%s&sort=re',
-                                keywords='meat lasagna')
-    # transform = TransformRecipe(url="https://www.allrecipes.com/search/results/?wt=%s&sort=re",
-    #                             keywords="sloppy joes")
+    # transform = TransformRecipe(url='https://www.allrecipes.com/recipe/231026/keema-aloo-ground-beef-and-potatoes/?internalSource=staff%20pick&referringId=233&referringContentType=Recipe%20Hub',
+    #                             to_or_from_vegetarian=True)
+    # transform = TransformRecipe(
+    #     url='https://www.allrecipes.com/recipe/18074/marinated-flank-steak/?internalSource=hub%20recipe&referringContentType=Search&clickId=cardslot%204',
+    #     to_or_from_vegetarian=True)
+    # transform = TransformRecipe(url="https://www.allrecipes.com/recipe/241963/seitan-pepperoni/?internalSource=hub%20recipe&referringContentType=Search&clickId=cardslot%202",
+    #                             to_or_from_vegetarian=False)
+    transform = TransformRecipe(url="https://www.allrecipes.com/recipe/267610/spicy-pork-and-vegetable-tofu/?internalSource=hub%20recipe&referringContentType=Search",
+                                to_or_from_vegetarian=False)
     transform.master_transform()
-    # transform.pretty_printer()
 
 
 if __name__ == "__main__":

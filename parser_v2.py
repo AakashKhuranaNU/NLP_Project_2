@@ -211,7 +211,6 @@ class RecipeFetcher:
     def compare_to_db(self):
         foods = self.load_food_properties()
         for ingredient in self.results['ingredients']:
-            print(ingredient)
             for food_key, prop in foods.items():
                 if prop['related_names']:
                     if ingredient['ingredient'] in prop['related_names']:
@@ -228,11 +227,8 @@ class RecipeFetcher:
             self.scrape_recipe(self.url)
             self.already_scraped = True
         else:
-            print("\n HEY HERE!!! \n")
-            print(self.results['directions_data'])
             lis3 = []
             self.results['directions_data'] = {}
-            print(self.results['directions_data'])
             for i in self.results['ingredients_sentence']:
                 a = self.split_ingredient(i)
                 lis3.append(a)
@@ -247,8 +243,8 @@ class RecipeFetcher:
         # print(self.results['directions_sentence'])
         # print("\n INGREDIENTS_SENTENCE: \n")
         # print(self.results['ingredients_sentence'])
-        print("\n INGREDIENTS: \n")
-        print(self.results['ingredients'])
+        # print("\n INGREDIENTS: \n")
+        # print(self.results['ingredients'])
 
 
 # Class for transforming the given recipe
@@ -288,7 +284,7 @@ class TransformRecipe:
             i["qty"] = i["qty"] * scaling_factor
 
 
-        print(self.rf.results['ingredients'])
+        # print(self.rf.results['ingredients'])
             # new_ingr.append(i)
         # print("scaled:", new_ingr)
 
@@ -517,22 +513,22 @@ class TransformRecipe:
         foods = self.load_food_properties()
         # Loop through the parsed data (key: overall step, value: dictionaries of that step tokenized into each sentence
         for direction, direction_tokens in self.rf.results['directions_data'].items():
-            print("\n")
-            print("Direction: {direction}".format(direction=direction))
-            print("\n")
-            print("Directions_Data: {d_data}".format(d_data=self.rf.results['directions_data']))
-            print("\n")
-            print("Directions_Sentence: {d_sentence}".format(d_sentence=self.rf.results['directions_sentence']))
-            print("\n")
-            print("Direction_Tokens: {direction_tokens}".format(direction_tokens=direction_tokens))
-            print("\n")
+            # print("\n")
+            # print("Direction: {direction}".format(direction=direction))
+            # print("\n")
+            # print("Directions_Data: {d_data}".format(d_data=self.rf.results['directions_data']))
+            # print("\n")
+            # print("Directions_Sentence: {d_sentence}".format(d_sentence=self.rf.results['directions_sentence']))
+            # print("\n")
+            # print("Direction_Tokens: {direction_tokens}".format(direction_tokens=direction_tokens))
+            # print("\n")
             directions_idx = self.rf.results['directions_sentence'].index(direction)
             # Loop through each tokenized sentence (key: tokenized sentence, value: dictionaries of data found
             # such as primary_method, tool, ingredients, etc
             for tokenized_direction, props in direction_tokens.items():
-                print("Tokenized_Direction: {tokenized_direction}".format(tokenized_direction=tokenized_direction))
-                print("\n")
-                print("Props: {props}".format(props=props))
+                # print("Tokenized_Direction: {tokenized_direction}".format(tokenized_direction=tokenized_direction))
+                # print("\n")
+                # print("Props: {props}".format(props=props))
                 if props['ingredients'] is not None:
                     # Loop through all ingredients found within the tokenized sentence
                     for ingredient in props['ingredients']:
@@ -587,14 +583,13 @@ class TransformRecipe:
                 # If there is a sorted list of related names
                 if sorted_related_names:
                     for sorted_name in sorted_related_names:
+                        alpha_only_sorted_name = sorted_name.replace(' ', '')
                         if sorted_name in self.rf.results['directions_sentence'][directions_idx] and \
-                                sorted_name.isalpha():
-                            print(sorted_name)
+                                alpha_only_sorted_name.isalpha():
                             direction = self.rf.results['directions_sentence'][directions_idx]
-                            print("HEY HERE \n")
-                            print(self.rf.results['directions_data'][direction])
                             direction = direction.replace(sorted_name, sub_food)
                             self.rf.results['directions_sentence'][directions_idx] = direction
+                            break
             # self.remove_common_properities(directions_idx=directions_idx)
         return substitutes, foods
 
@@ -605,6 +600,7 @@ class TransformRecipe:
         if ingredient_related_names[ingredient]:
             sorted_related_names = sorted(ingredient_related_names[ingredient], key=len, reverse=True)
             sorted_related_names.append('meat')
+            print(sorted_related_names)
             return sorted_related_names
         return []
 
@@ -654,13 +650,6 @@ class TransformRecipe:
 
 
 def main():
-    # transform = TransformRecipe(url='https://www.allrecipes.com/recipe/231026/keema-aloo-ground-beef-and-potatoes/?internalSource=staff%20pick&referringId=233&referringContentType=Recipe%20Hub',
-    #                             to_or_from_vegetarian=True)
-    # transform = TransformRecipe(
-    #     url='https://www.allrecipes.com/recipe/18074/marinated-flank-steak/?internalSource=hub%20recipe&referringContentType=Search&clickId=cardslot%204',
-    #     to_or_from_vegetarian=True)
-    # transform = TransformRecipe(url="https://www.allrecipes.com/recipe/241963/seitan-pepperoni/?internalSource=hub%20recipe&referringContentType=Search&clickId=cardslot%202",
-    #                             to_or_from_vegetarian=False)
     main_util()
 
 

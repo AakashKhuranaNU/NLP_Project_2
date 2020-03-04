@@ -1,0 +1,231 @@
+{
+  "chicken":
+    {
+      "unit": "pound",
+      "food_category": "meat",
+      "related_names": ["grilled chicken", "fried chicken", "whole bird", "whole-bird", "chicken breast",
+        "chicken-breast", "chicken tenderloin", "tenderloin", "chicken thigh", "chicken-thigh",
+        "chicken thighs", "chicken-thighs", "chicken wings", "chicken wing", "chicken-wing", "chicken-wings",
+        "spicy chicken wings", "spicy chicken-wings", "spicy chicken wing", "spicy chicken-wing",
+        "drumsticks", "chicken drumsticks", "chicken-drumsticks", "drumstick", "chicken drumstick",
+        "chicken-drumstick", "chicken mince", "mince", "chicken burger", "chicken breast fillet tenderloin",
+        "breast fillet tenderloin", "whole wing", "chicken whole wing", "roasted chicken", "roasted-chicken",
+        "roast chicken", "roast-chicken", "grilled-chicken", "pan-roasted chicken", "pan roasted chicken",
+        "baked chicken", "bake-chicken", "chicken"],
+      "primary_methods": ["grill", "grilling", "fry", "frying", "roast", "roasting", "pan-roast", "pan-roasting",
+      "bake", "baking", "baste", "basting", "poach", "poaching", "boil", "boiling"],
+      "vegetarian_substitutes": ["tofu", "seitan"],
+      "time_to_cook": {
+        "grilling": 10,
+        "baking": 20
+      },
+      "avg_calorie": 150
+    },
+  "beef":
+    {
+      "unit": "pound",
+      "food_category": "meat",
+      "related_names": ["pounds lean ground beef", "lean ground beef", "ground beef",
+        "beef chuck", "chuck", "shank", "beef shank", "beef flank", "flank", "beef brisket",
+        "brisket", "beef ribs", "beef rib", "ribs", "rib", "beef sirloin", "sirloin", "beef loin", "loin",
+        "beef tongue", "tongue", "beef neck", "neck", "beef knuckle", "knuckle", "skirt steak", "steak",
+        "filet mignon", "beef", "flank steak", "flank-steak"],
+      "primary_methods": ["grill", "grilling", "braise", "braising", "stew", "stewing", "broil", "broiling",
+      "stir-frying", "stir frying", "stir fry", "stir-fry", "barbecue", "barbeque", "pan frying", "pan-frying",
+      "pan fry", "pan-fry", "pan sear", "pan-sear", "pan-searing", "pan searing"],
+      "vegetarian_substitutes": ["tofu", "seitan"],
+      "time_to_cook": {
+        "grilling": 10,
+        "baking": 20
+      },
+      "avg_calorie": 150
+    },
+  "pork":
+    {
+      "unit": "pound",
+      "food_category": "meat",
+      "related_names": ["pulled pork", "pork chop", "ribs", "spare ribs", "bacon", "pork loin", "pork ribs",
+        "bacon", "ham hock", "pork tenderloin", "ground meat", "standing rib roast", "rib roast", "ground pork",
+        "ham", "pork steak", "pork rib roast", "loin roast", "sausage", "shoulder", "pork"],
+      "primary_methods": ["roast", "roasting", "brine", "brining", "spatchcock", "spatchcocking", "smoke",
+      "smoking", "grill", "grilling", "deep fry", "deep frying", "fry", "frying"],
+      "vegetarian_substitutes": ["seitan", "tofu"],
+      "time_to_cook": {
+        "grilling": 10,
+        "baking": 20
+      },
+      "avg_calorie": 150
+    },
+  "lamb":
+    {
+      "unit": "pound",
+      "food_category": "meat",
+      "related_names": ["ground turkey", "turkey sausage", "sausage", "italian turkey sausage", "turkey wings",
+      "turkey breast", "smoked turkey breast", "roasted turkey breast", "turkey leg", "leg", "turkey thigh",
+      "thigh", "turkey liver", "turkey heart", "liver", "heart", "turkey gizzard", "gizzard", "turkey neck",
+      "neck", "turkey back", "back", "white meat", "dark meat", "turkey white meat", "turkey dark meat"],
+      "primary_methods": ["roast", "roasting", "braise", "braising", "stew", "stewing", "barbeque", "barbecue", "bbq",
+      "grill", "grilling", "pan fry", "pan-fry", "pan frying", "pan-frying"],
+      "vegetarian_substitutes": ["seitan", "tofu"],
+      "time_to_cook": {
+        "grilling": 10,
+        "baking": 20
+      },
+      "avg_calorie": 150
+    },
+  "turkey":
+    {
+      "unit": "pound",
+      "food_category": "meat",
+      "related_names": ["lamb shoulder", "shoulder", "lamb rack", "rack", "lamb loin", "loin", "lamb saddle",
+      "saddle", "lamb leg", "leg", "lamb foreshank", "foreshank", "lamb hindshank", "hindshank", "lamb breast",
+      "breast", "lamb flank", "lamb neck"],
+      "primary_methods": ["roast", "roasting", "braise", "braising", "stew", "stewing", "barbeque", "barbecue", "bbq",
+      "grill", "grilling", "pan fry", "pan-fry", "pan frying", "pan-frying"],
+      "vegetarian_substitutes": ["seitan", "tofu"],
+      "time_to_cook": {
+        "grilling": 10,
+        "baking": 20
+      },
+      "avg_calorie": 150
+    },
+    "venison":
+    {
+      "unit": "pound",
+      "food_category": "meat",
+      "related_names": ["lamb shoulder", "shoulder", "lamb rack", "rack", "lamb loin", "loin", "lamb saddle",
+      "saddle", "lamb leg", "leg", "lamb foreshank", "foreshank", "lamb hindshank", "hindshank", "lamb breast",
+      "breast", "lamb flank", "lamb neck"],
+      "primary_methods": ["roast", "roasting", "braise", "braising", "stew", "stewing", "barbeque", "barbecue", "bbq",
+      "grill", "grilling", "pan fry", "pan-fry", "pan frying", "pan-frying"],
+      "vegetarian_substitutes": ["seitan", "tofu"],
+      "time_to_cook": {
+        "grilling": 10,
+        "baking": 20
+      },
+      "avg_calorie": 150
+    },
+  "duck":
+    {
+      "unit": "pound",
+      "food_category": "meat",
+      "related_names": ["lamb shoulder", "shoulder", "lamb rack", "rack", "lamb loin", "loin", "lamb saddle",
+      "saddle", "lamb leg", "leg", "lamb foreshank", "foreshank", "lamb hindshank", "hindshank", "lamb breast",
+      "breast", "lamb flank", "lamb neck"],
+      "primary_methods": ["roast", "roasting", "braise", "braising", "stew", "stewing", "barbeque", "barbecue", "bbq",
+      "grill", "grilling", "pan fry", "pan-fry", "pan frying", "pan-frying"],
+      "vegetarian_substitutes": ["seitan", "tofu"],
+      "time_to_cook": {
+        "grilling": 10,
+        "baking": 20
+      },
+      "avg_calorie": 150
+    },
+  "wild boar":
+    {
+      "unit": "pound",
+      "food_category": "meat",
+      "related_names": ["lamb shoulder", "shoulder", "lamb rack", "rack", "lamb loin", "loin", "lamb saddle",
+      "saddle", "lamb leg", "leg", "lamb foreshank", "foreshank", "lamb hindshank", "hindshank", "lamb breast",
+      "breast", "lamb flank", "lamb neck"],
+      "primary_methods": ["roast", "roasting", "braise", "braising", "stew", "stewing", "barbeque", "barbecue", "bbq",
+      "grill", "grilling", "pan fry", "pan-fry", "pan frying", "pan-frying"],
+      "vegetarian_substitutes": ["seitan", "tofu"],
+      "time_to_cook": {
+        "grilling": 10,
+        "baking": 20
+      },
+      "avg_calorie": 150
+    },
+  "bison":
+    {
+      "unit": "pound",
+      "food_category": "meat",
+      "related_names": ["lamb shoulder", "shoulder", "lamb rack", "rack", "lamb loin", "loin", "lamb saddle",
+      "saddle", "lamb leg", "leg", "lamb foreshank", "foreshank", "lamb hindshank", "hindshank", "lamb breast",
+      "breast", "lamb flank", "lamb neck"],
+      "primary_methods": ["roast", "roasting", "braise", "braising", "stew", "stewing", "barbeque", "barbecue", "bbq",
+      "grill", "grilling", "pan fry", "pan-fry", "pan frying", "pan-frying"],
+      "vegetarian_substitutes": ["seitan", "tofu"],
+      "time_to_cook": {
+        "grilling": 10,
+        "baking": 20
+      },
+      "avg_calorie": 150
+    },
+  "rabbit":
+    {
+      "unit": "pound",
+      "food_category": "meat",
+      "related_names": ["lamb shoulder", "shoulder", "lamb rack", "rack", "lamb loin", "loin", "lamb saddle",
+      "saddle", "lamb leg", "leg", "lamb foreshank", "foreshank", "lamb hindshank", "hindshank", "lamb breast",
+      "breast", "lamb flank", "lamb neck"],
+      "primary_methods": ["roast", "roasting", "braise", "braising", "stew", "stewing", "barbeque", "barbecue", "bbq",
+      "grill", "grilling", "pan fry", "pan-fry", "pan frying", "pan-frying"],
+      "vegetarian_substitutes": ["seitan", "tofu"],
+      "time_to_cook": {
+        "grilling": 10,
+        "baking": 20
+      },
+      "avg_calorie": 150
+    },
+  "goose":
+    {
+      "unit": "pound",
+      "food_category": "meat",
+      "related_names": ["lamb shoulder", "shoulder", "lamb rack", "rack", "lamb loin", "loin", "lamb saddle",
+      "saddle", "lamb leg", "leg", "lamb foreshank", "foreshank", "lamb hindshank", "hindshank", "lamb breast",
+      "breast", "lamb flank", "lamb neck"],
+      "primary_methods": ["roast", "roasting", "braise", "braising", "stew", "stewing", "barbeque", "barbecue", "bbq",
+      "grill", "grilling", "pan fry", "pan-fry", "pan frying", "pan-frying"],
+      "vegetarian_substitutes": ["seitan", "tofu"],
+      "time_to_cook": {
+        "grilling": 10,
+        "baking": 20
+      },
+      "avg_calorie": 150
+    },
+    "tofu":
+    {
+      "unit": "pound",
+      "food_category": "Dairy",
+      "related_names": ["tofu", "extra-firm tofu", "extra firm tofu", "tofu", "firm tofu", ""],
+      "primary_methods": ["grill", "grilling", "braise", "braising", "bake", "baking", "scramble", "fry", "frying",
+        "deep fry", "deep-fry", "deep-frying", "deep frying", "stir fry", "stir-fry", "stir frying", "stir-frying",
+        "saute", "sauté", "sautéing", "sauteing", "scrambled"],
+      "vegetarian_substitutes": ["chicken", "beef", "pork", "lamb", "turkey"],
+      "time_to_cook": {
+        "grilling": 10,
+        "baking": 20
+      },
+      "avg_calorie": 150
+    },
+    "seitan":
+    {
+      "unit": "pound",
+      "food_category": "Breads",
+      "related_names": ["wheat gluten", "gluten", "wheat meat", "gluten meat", "vital wheat gluten",
+        "vital wheat gluten flour", "seitan"],
+      "primary_methods": ["grilling", "braising"],
+      "vegetarian_substitutes": ["beef", "chicken", "pork"],
+      "time_to_cook": {
+        "grilling": 10,
+        "baking": 20
+      },
+      "avg_calorie": 150
+    },
+  "egg":
+    {
+      "unit": "",
+      "food_category": "meat",
+      "related_names": ["eggs", "large eggs", "medium eggs", "small eggs", "egg"],
+      "primary_methods": ["bake", "baked", "hard-boiled", "hard boiled",
+        "hard-cooked", "hard cooked", "fried", "poached", "baste", "poach", "scramble", "scrambled"],
+      "vegetarian_substitutes": ["seitan", "tofu"],
+      "time_to_cook": {
+        "grilling": 10,
+        "baking": 20
+      },
+      "avg_calorie": 150
+    }
+}

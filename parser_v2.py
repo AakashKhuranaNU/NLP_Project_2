@@ -69,6 +69,7 @@ class RecipeFetcher:
             "directions_data": {}
         }
         self.url = url
+        self.already_scraped = False
 
     def split_ingredient(self, val):
         val = val.replace("or to taste", "")
@@ -223,7 +224,19 @@ class RecipeFetcher:
                     break
 
     def search_and_scrape(self):
-        self.scrape_recipe(self.url)
+        if self.already_scraped is False:
+            self.scrape_recipe(self.url)
+            self.already_scraped = True
+        else:
+            print("\n HEY HERE!!! \n")
+            print(self.results['directions_data'])
+            lis3 = []
+            self.results['directions_data'] = {}
+            print(self.results['directions_data'])
+            for i in self.results['ingredients_sentence']:
+                a = self.split_ingredient(i)
+                lis3.append(a)
+            self.results["ingredients"] = lis3
         self.compare_to_db()
         self.parse_directions()
         # print("\n DIRECTIONS_DATA: \n")
@@ -578,6 +591,8 @@ class TransformRecipe:
                                 sorted_name.isalpha():
                             print(sorted_name)
                             direction = self.rf.results['directions_sentence'][directions_idx]
+                            print("HEY HERE \n")
+                            print(self.rf.results['directions_data'][direction])
                             direction = direction.replace(sorted_name, sub_food)
                             self.rf.results['directions_sentence'][directions_idx] = direction
             # self.remove_common_properities(directions_idx=directions_idx)
@@ -597,7 +612,7 @@ class TransformRecipe:
         if self.to_or_from_vegetarian:
             common_words = ["remove the grease"]
         else:
-            common_words = []
+            common_words = ["Mix"]
 
         for common_word in common_words:
             if common_word in self.rf.results['directions_sentence'][directions_idx]:
@@ -647,7 +662,6 @@ def main():
     # transform = TransformRecipe(url="https://www.allrecipes.com/recipe/241963/seitan-pepperoni/?internalSource=hub%20recipe&referringContentType=Search&clickId=cardslot%202",
     #                             to_or_from_vegetarian=False)
     main_util()
-
 
 
 def main_util():

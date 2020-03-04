@@ -580,6 +580,7 @@ class TransformRecipe:
                             direction = self.rf.results['directions_sentence'][directions_idx]
                             direction = direction.replace(sorted_name, sub_food)
                             self.rf.results['directions_sentence'][directions_idx] = direction
+            # self.remove_common_properities(directions_idx=directions_idx)
         return substitutes, foods
 
     @staticmethod
@@ -592,6 +593,17 @@ class TransformRecipe:
             return sorted_related_names
         return []
 
+    def remove_common_properities(self, directions_idx):
+        if self.to_or_from_vegetarian:
+            common_words = ["remove the grease"]
+        else:
+            common_words = ["Mix"]
+
+        for common_word in common_words:
+            if common_word in self.rf.results['directions_sentence'][directions_idx]:
+                direction = self.rf.results['directions_sentence'][directions_idx]
+                direction = direction.replace(common_word, "")
+                self.rf.results['directions_sentence'][directions_idx] = direction
 
     def load_recipe(self):
         self.rf.search_and_scrape()
@@ -634,15 +646,16 @@ def main():
     #     to_or_from_vegetarian=True)
     # transform = TransformRecipe(url="https://www.allrecipes.com/recipe/241963/seitan-pepperoni/?internalSource=hub%20recipe&referringContentType=Search&clickId=cardslot%202",
     #                             to_or_from_vegetarian=False)
+    main_util()
+
+
+
+def main_util():
     print("HI! PLEASE ENTER A RECIPE URL")
     user_url = input()
     transform = TransformRecipe(url=user_url)
-    transform.load_recipe()
-    main_util(transform)
-
-
-def main_util(transform):
     while True:
+        transform.load_recipe()
         print("PLEASE ENTER ONE OF THE FOLLOWING CHOICES:")
         print("1: TRANSFORM TO NON-VEG")
         print("2: TRANSFORM TO VEG")

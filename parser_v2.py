@@ -597,7 +597,7 @@ class TransformRecipe:
         if self.to_or_from_vegetarian:
             common_words = ["remove the grease"]
         else:
-            common_words = ["Mix"]
+            common_words = []
 
         for common_word in common_words:
             if common_word in self.rf.results['directions_sentence'][directions_idx]:

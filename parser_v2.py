@@ -8,7 +8,7 @@ import spacy
 import string
 import json
 import random
-import transformations
+# import transformations
 
 nlp = spacy.load("en_core_web_sm")
 
@@ -115,6 +115,8 @@ class RecipeFetcher:
                 elif j not in ing["prep"]:
                     str = str + " " + j
 
+        if str == '':
+            str = "Not Found"
         ing["ingredient"] = str.strip()
         ing["alt_qty"] = str1.strip()
         ing["qty"] = qty
@@ -122,6 +124,7 @@ class RecipeFetcher:
 
     def parse_directions(self):
         for r in self.results['directions_sentence']:
+            self.results['directions_data'][r] = {}
             for s in sent_tokenize(r):
                 method = {'primary_method': [], 'secondary_method': [], 'tool': [], 'ingredients': []}
                 doc = nlp(s.lower())
@@ -154,7 +157,7 @@ class RecipeFetcher:
                             method['time'] = [token.text, temp[ind + 1]]
                         elif temp[ind + 1] in TEMP:
                             method['temp'] = [token.text, temp[ind + 1], temp[ind + 2]]
-                self.results['directions_data'][s] = method
+                self.results['directions_data'][r][s] = method
 
     # def search_recipes(self):
     #     search_url = self.url % (self.keywords.replace(' ', '+'))
@@ -200,7 +203,7 @@ class RecipeFetcher:
 
     @staticmethod
     def load_food_properties():
-        with open('food_properties.json') as f:
+        with open('meat_replacement.json') as f:
             foods = json.load(f)
             return foods
 
@@ -246,12 +249,12 @@ class TransformRecipe:
         }
         self.food_properties_found = []
         self.rf = RecipeFetcher(url=url)
-        # self.to_or_from_vegetarian = to_or_from_vegetarian
+        self.to_or_from_vegetarian = False
 
     @staticmethod
     # Loads our local DB
     def load_food_properties():
-        with open('food_properties.json') as f:
+        with open('meat_replacement.json') as f:
             foods = json.load(f)
             return foods
 
@@ -501,10 +504,22 @@ class TransformRecipe:
         foods = self.load_food_properties()
         # Loop through the parsed data (key: overall step, value: dictionaries of that step tokenized into each sentence
         for direction, direction_tokens in self.rf.results['directions_data'].items():
+            print("\n")
+            print("Direction: {direction}".format(direction=direction))
+            print("\n")
+            print("Directions_Data: {d_data}".format(d_data=self.rf.results['directions_data']))
+            print("\n")
+            print("Directions_Sentence: {d_sentence}".format(d_sentence=self.rf.results['directions_sentence']))
+            print("\n")
+            print("Direction_Tokens: {direction_tokens}".format(direction_tokens=direction_tokens))
+            print("\n")
             directions_idx = self.rf.results['directions_sentence'].index(direction)
             # Loop through each tokenized sentence (key: tokenized sentence, value: dictionaries of data found
             # such as primary_method, tool, ingredients, etc
             for tokenized_direction, props in direction_tokens.items():
+                print("Tokenized_Direction: {tokenized_direction}".format(tokenized_direction=tokenized_direction))
+                print("\n")
+                print("Props: {props}".format(props=props))
                 if props['ingredients'] is not None:
                     # Loop through all ingredients found within the tokenized sentence
                     for ingredient in props['ingredients']:
@@ -643,8 +658,10 @@ def main_util(transform):
         user_choice = input()
         user_choice = int(user_choice)
         if user_choice == 1:
+            transform.to_or_from_vegetarian = False
             transform.master_transform()
         elif user_choice == 2:
+            transform.to_or_from_vegetarian = True
             transform.master_transform()
         elif user_choice == 3:
             transform.transform_cuisine()

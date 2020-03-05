@@ -81,6 +81,7 @@ class RecipeFetcher:
         val = val.replace(", drained and sliced into large chunks", "")
         val = val.replace(", drained", "")
         val = val.replace(", cubed", "")
+        val = val.replace(", cut into 8 pieces", "")
         ing = {
             "prep": "",
             "qty": 0,
@@ -90,7 +91,8 @@ class RecipeFetcher:
             "json_obj": {}
         }
         qty = float(0)
-        sp = val.split()
+        comma_splice = val.split(', ')
+        sp = comma_splice[0].split()
         tag = nltk.pos_tag(sp)
         for i in tag:
             if "VB" in i[1]:
@@ -149,7 +151,7 @@ class RecipeFetcher:
                             if token.lemma_ not in method['tool']:
                                 method['tool'].append(token.lemma_)
                     elif token.pos_ == 'NUM' and 'inch' not in token.text:
-                        if not float(Fraction(token.text)).is_integer():
+                        if token.text.isalpha() or not float(Fraction(token.text)).is_integer():
                             continue
                         table = str.maketrans('', '', string.punctuation)
                         temp = [w.translate(table) for w in s.split()]
@@ -217,6 +219,17 @@ class RecipeFetcher:
                         idx = self.results['ingredients'].index(ingredient)
                         self.results['ingredients'][idx]['json_obj'] = prop
                         break
+                    else:
+                        split_found = False
+                        split_ingredient = ingredient['ingredient'].split()
+                        if split_ingredient:
+                            for split in split_ingredient:
+                                if split in prop['related_names']:
+                                    split_found = True
+                                    idx = self.results['ingredients'].index(ingredient)
+                                    self.results['ingredients'][idx]['json_obj'] = prop
+                        if split_found is True:
+                            break
                 if food_key in ingredient['ingredient']:
                     idx = self.results['ingredients'].index(ingredient)
                     self.results['ingredients'][idx]['json_obj'] = prop
@@ -243,8 +256,8 @@ class RecipeFetcher:
         # print(self.results['directions_sentence'])
         # print("\n INGREDIENTS_SENTENCE: \n")
         # print(self.results['ingredients_sentence'])
-        # print("\n INGREDIENTS: \n")
-        # print(self.results['ingredients'])
+        print("\n INGREDIENTS: \n")
+        print(self.results['ingredients'])
 
 
 # Class for transforming the given recipe
@@ -477,8 +490,11 @@ class TransformRecipe:
                     ingredient_unit = props['unit']
 
                     # Grab the substitute ingredient name and unit
-                    sub_ingredient_name = substitutes[ing]
-                    sub_ingredient_unit = foods_db[sub_ingredient_name]['unit']
+                    try:
+                        sub_ingredient_name = substitutes[ing]
+                        sub_ingredient_unit = foods_db[sub_ingredient_name]['unit']
+                    except:
+                        continue
 
                     # Replace the ingredient name for the sub ingredient name
                     transformed_ingredient_sentence = ingredient_sentence
@@ -546,13 +562,6 @@ class TransformRecipe:
                                         ingredient['ingredient'] not in ingredient_related_names:
                                     ingredient_related_names[ingredient['ingredient']] = ingr_data['related_names']
                                 substitute_ing = ""
-                                # Loop through vegetarian substitutes for the meat in question
-                                for substitute in ingr_data['vegetarian_substitutes']:
-                                    # If a primary method was found in the tokenized sentence,
-                                    # see if a vegetarian substitute has the same primary method
-                                    if props['primary_method'] != []:
-                                        if props['primary_method'][0] in foods[substitute]['primary_methods']:
-                                            substitute_ing = substitute
                                 # If no substitute was found with the same primary method, choose random substitute
                                 if substitute_ing == "" and ingr_data['vegetarian_substitutes'] is not None:
                                     substitute_ing = random.choice(ingr_data['vegetarian_substitutes'])
@@ -565,13 +574,6 @@ class TransformRecipe:
                                         ingredient['ingredient'] not in ingredient_related_names:
                                     ingredient_related_names[ingredient['ingredient']] = ingr_data['related_names']
                                 substitute_ing = ""
-                                # Loop through meat substitutes for the ingredient in question
-                                for substitute in ingr_data['vegetarian_substitutes']:
-                                    # If a primary method was found in the tokenized sentence,
-                                    # see if a meat substitute has the same primary method
-                                    if props['primary_method'] != []:
-                                        if props['primary_method'][0] in foods[substitute]['primary_methods']:
-                                            substitute_ing = substitute
                                 # If no substitute was found with the same primary method, choose random substitute
                                 if substitute_ing == "" and ingr_data['vegetarian_substitutes'] is not None:
                                     substitute_ing = random.choice(ingr_data['vegetarian_substitutes'])
@@ -600,7 +602,7 @@ class TransformRecipe:
         if ingredient_related_names[ingredient]:
             sorted_related_names = sorted(ingredient_related_names[ingredient], key=len, reverse=True)
             sorted_related_names.append('meat')
-            print(sorted_related_names)
+            # print(sorted_related_names)
             return sorted_related_names
         return []
 

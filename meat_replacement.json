@@ -144,7 +144,7 @@
       "primary_methods": ["grill", "grilling", "braise", "braising", "bake", "baking", "scramble", "fry", "frying",
         "deep fry", "deep-fry", "deep-frying", "deep frying", "stir fry", "stir-fry", "stir frying", "stir-frying",
         "saute", "sauté", "sautéing", "sauteing", "scrambled"],
-      "vegetarian_substitutes": ["chicken", "beef", "pork", "lamb", "turkey", "rabbit", "duck", "venison"],
+      "vegetarian_substitutes": ["chicken", "beef", "pork", "lamb", "turkey", "rabbit", "venison"],
       "time_to_cook": {
         "grilling": 10,
         "baking": 20
@@ -160,7 +160,7 @@
       "primary_methods": ["grill", "grilling", "braise", "braising", "stew", "stewing", "broil", "broiling",
       "stir-frying", "stir frying", "stir fry", "stir-fry", "barbecue", "barbeque", "pan frying", "pan-frying",
       "pan fry", "pan-fry", "pan sear", "pan-sear", "pan-searing", "pan searing"],
-      "vegetarian_substitutes": ["beef", "chicken", "pork", "rabbit", "duck", "venison", "lamb", "turkey"],
+      "vegetarian_substitutes": ["beef", "chicken", "pork", "rabbit", "venison", "lamb", "turkey"],
       "time_to_cook": {
         "grilling": 10,
         "baking": 20
@@ -175,7 +175,7 @@
       "primary_methods": ["grill", "grilling", "braise", "braising", "stew", "stewing", "broil", "broiling",
       "stir-frying", "stir frying", "stir fry", "stir-fry", "barbecue", "barbeque", "pan frying", "pan-frying",
       "pan fry", "pan-fry", "pan sear", "pan-sear", "pan-searing", "pan searing"],
-      "vegetarian_substitutes": ["beef", "chicken", "pork", "rabbit", "duck", "venison", "lamb", "turkey"],
+      "vegetarian_substitutes": ["beef", "chicken", "pork", "rabbit", "venison", "lamb", "turkey"],
       "time_to_cook": {
         "grilling": 10,
         "baking": 20
@@ -197,7 +197,7 @@
         "parsnip", "pea", "peas", "okra", "zucchini", "taro", "avocado", "avocados"],
       "primary_methods": ["bake", "steam", "grill", "roast", "boil", "fry", "barbeque", "baste", "broil", "poach",
                            "freeze", "cure", "saute", "cook"],
-      "vegetarian_substitutes": ["beef", "chicken", "pork", "rabbit", "duck", "venison", "lamb", "turkey"],
+      "vegetarian_substitutes": ["beef", "chicken", "pork", "rabbit", "venison", "lamb", "turkey"],
       "time_to_cook": {
         "grilling": 10,
         "baking": 20

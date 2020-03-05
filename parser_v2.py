@@ -964,9 +964,13 @@ def main_util():
         user_choice = int(user_choice)
         if user_choice == 1:
             transform.to_or_from_vegetarian = False
+            if transform.rf.already_scraped:
+                transform.load_recipe()
             transform.master_transform()
         elif user_choice == 2:
             transform.to_or_from_vegetarian = True
+            if transform.rf.already_scraped:
+                transform.load_recipe()
             transform.master_transform()
         elif user_choice == 3:
             transform.transform_cuisine()

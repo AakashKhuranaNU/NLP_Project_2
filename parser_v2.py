@@ -274,7 +274,6 @@ class RecipeFetcher:
                         elif token.lemma_ in TOOLS:
                             if token.lemma_ not in method['tool']:
                                 method['tool'].append(token.lemma_)
-<<<<<<< HEAD
                     elif token.pos_ == 'NUM' and 'inch' not in token.text:
                         if token.text.isalpha():
                             if not float(Fraction(token.text)).is_integer():
@@ -290,7 +289,6 @@ class RecipeFetcher:
                         except:
                             continue
                 # self.results['directions_data'][r][s] = method
-=======
                     elif token.pos_ == 'NUM' and 'inch' not in token.text and 'inches' not in token.text and 'in' not in token.text:
                         # print("NUM ", token.text)
                         table = str.maketrans('', '', '!"#$%&\'()*+,-.:;<=>?@[]^_`{|}~')
@@ -322,7 +320,6 @@ class RecipeFetcher:
                             for ing in ingr:
                                 if typ in stemmer.stem(ing['ingredient']) or typ in stemmer.stem(ing['type']):
                                     ing['qty'] = float(token.text)
->>>>>>> 03154527a2137e32139c27b91c57eb578204db7d
                 self.results['directions_data'][s] = method
 
     # def search_recipes(self):
@@ -387,16 +384,13 @@ class RecipeFetcher:
                         split_ingredient = ingredient['ingredient'].split()
                         if split_ingredient:
                             for split in split_ingredient:
+                                print(split_ingredient)
                                 if split in prop['related_names']:
                                     split_found = True
                                     idx = self.results['ingredients'].index(ingredient)
                                     self.results['ingredients'][idx]['json_obj'] = prop
                         if split_found is True:
                             break
-                if food_key in ingredient['ingredient']:
-                    idx = self.results['ingredients'].index(ingredient)
-                    self.results['ingredients'][idx]['json_obj'] = prop
-                    break
 
     def search_and_scrape(self):
         if self.already_scraped is False:

@@ -151,15 +151,19 @@ class RecipeFetcher:
                             if token.lemma_ not in method['tool']:
                                 method['tool'].append(token.lemma_)
                     elif token.pos_ == 'NUM' and 'inch' not in token.text:
-                        if token.text.isalpha() or not float(Fraction(token.text)).is_integer():
-                            continue
+                        if token.text.isalpha():
+                            if not float(Fraction(token.text)).is_integer():
+                                continue
                         table = str.maketrans('', '', string.punctuation)
                         temp = [w.translate(table) for w in s.split()]
-                        ind = temp.index(token.text)
-                        if temp[ind + 1] in TIME:
-                            method['time'] = [token.text, temp[ind + 1]]
-                        elif temp[ind + 1] in TEMP:
-                            method['temp'] = [token.text, temp[ind + 1], temp[ind + 2]]
+                        try:
+                            ind = temp.index(token.text)
+                            if temp[ind + 1] in TIME:
+                                method['time'] = [token.text, temp[ind + 1]]
+                            elif temp[ind + 1] in TEMP:
+                                method['temp'] = [token.text, temp[ind + 1], temp[ind + 2]]
+                        except:
+                            continue
                 # self.results['directions_data'][r][s] = method
                 self.results['directions_data'][s] = method
 
@@ -582,6 +586,7 @@ class TransformRecipe:
         # Loop through the dictionary of all items that need to be substituted
         for direction_loop in self.rf.results['directions_sentence']:
             directions_idx = self.rf.results['directions_sentence'].index(direction_loop)
+            modified_direction = direction_loop
             for food, sub_food in substitutes.items():
                 # Find the most relative name ("Ground Beef" versus just "Beef")
                 sorted_related_names = self.most_relative_name(ingredient_related_names, food)
@@ -589,10 +594,11 @@ class TransformRecipe:
                 if sorted_related_names:
                     for sorted_name in sorted_related_names:
                         alpha_only_sorted_name = sorted_name.replace(' ', '')
-                        if sorted_name in direction_loop and alpha_only_sorted_name.isalpha():
-                            direction_replaced = direction_loop.replace(sorted_name, sub_food)
-                            self.rf.results['directions_sentence'][directions_idx] = direction_replaced
+                        if sorted_name in modified_direction and alpha_only_sorted_name.isalpha():
+                            modified_direction = modified_direction.replace(sorted_name, sub_food)
                             break
+            self.rf.results['directions_sentence'][directions_idx] = modified_direction
+
         # self.remove_common_properities(directions_idx=directions_idx)
         return substitutes, foods
 

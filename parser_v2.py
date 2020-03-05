@@ -274,20 +274,20 @@ class RecipeFetcher:
                         elif token.lemma_ in TOOLS:
                             if token.lemma_ not in method['tool']:
                                 method['tool'].append(token.lemma_)
-                    elif token.pos_ == 'NUM' and 'inch' not in token.text:
-                        if token.text.isalpha():
-                            if not float(Fraction(token.text)).is_integer():
-                                continue
-                        table = str.maketrans('', '', string.punctuation)
-                        temp = [w.translate(table) for w in s.split()]
-                        try:
-                            ind = temp.index(token.text)
-                            if temp[ind + 1] in TIME:
-                                method['time'] = [token.text, temp[ind + 1]]
-                            elif temp[ind + 1] in TEMP:
-                                method['temp'] = [token.text, temp[ind + 1], temp[ind + 2]]
-                        except:
-                            continue
+#                     elif token.pos_ == 'NUM' and 'inch' not in token.text:
+#                         if token.text.isalpha():
+#                             if not float(Fraction(token.text)).is_integer():
+#                                 continue
+#                         table = str.maketrans('', '', string.punctuation)
+#                         temp = [w.translate(table) for w in s.split()]
+#                         try:
+#                             ind = temp.index(token.text)
+#                             if temp[ind + 1] in TIME:
+#                                 method['time'] = [token.text, temp[ind + 1]]
+#                             elif temp[ind + 1] in TEMP:
+#                                 method['temp'] = [token.text, temp[ind + 1], temp[ind + 2]]
+#                         except:
+#                             continue
                 # self.results['directions_data'][r][s] = method
                     elif token.pos_ == 'NUM' and 'inch' not in token.text and 'inches' not in token.text and 'in' not in token.text:
                         # print("NUM ", token.text)

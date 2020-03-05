@@ -139,7 +139,7 @@
   "tofu":
     {
       "unit": "pound",
-      "food_category": "Dairy",
+      "food_category": "dairy",
       "related_names": ["tofu", "extra-firm tofu", "extra firm tofu", "tofu", "firm tofu"],
       "primary_methods": ["grill", "grilling", "braise", "braising", "bake", "baking", "scramble", "fry", "frying",
         "deep fry", "deep-fry", "deep-frying", "deep frying", "stir fry", "stir-fry", "stir frying", "stir-frying",
@@ -154,7 +154,7 @@
     "seitan":
     {
       "unit": "pound",
-      "food_category": "Breads",
+      "food_category": "breads",
       "related_names": ["wheat gluten", "gluten", "wheat meat", "gluten meat", "vital wheat gluten", "seitan",
       "chicken style seitan", "vital wheat gluten flour"],
       "primary_methods": ["grill", "grilling", "braise", "braising", "stew", "stewing", "broil", "broiling",
@@ -185,7 +185,7 @@
   "vegetables":
     {
       "unit": "pound",
-      "food_category": "Vegetable",
+      "food_category": "vegetable",
       "related_names": ["artichoke", "artichokes", "eggplant", "eggplants", "asparagus", "asparaguses", "legume",
         "broccoli", "broccolis", "brussels sprout", "brussels sprouts", "brussel sprout", "brussel sprouts",
         "cauliflower", "cauliflowers", "celery", "celeries", "kale", "kales", "collard green", "collard greens",

@@ -384,7 +384,6 @@ class RecipeFetcher:
                         split_ingredient = ingredient['ingredient'].split()
                         if split_ingredient:
                             for split in split_ingredient:
-                                print(split_ingredient)
                                 if split in prop['related_names']:
                                     split_found = True
                                     idx = self.results['ingredients'].index(ingredient)
@@ -817,9 +816,6 @@ class TransformRecipe:
         # Loop through each tokenized sentence (key: tokenized sentence, value: dictionaries of data found
         # such as primary_method, tool, ingredients, etc
         for tokenized_direction, props in self.rf.results['directions_data'].items():
-            # print("Tokenized_Direction: {tokenized_direction}".format(tokenized_direction=tokenized_direction))
-            # print("\n")
-            # print("Props: {props}".format(props=props))
             if props['ingredients'] is not None:
                 # Loop through all ingredients found within the tokenized sentence
                 for ingredient in props['ingredients']:

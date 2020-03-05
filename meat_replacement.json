@@ -14,7 +14,7 @@
         "baked chicken", "bake-chicken", "duck", "ducks", "chickens", "chicken"],
       "primary_methods": ["grill", "grilling", "fry", "frying", "roast", "roasting", "pan-roast", "pan-roasting",
       "bake", "baking", "baste", "basting", "poach", "poaching", "boil", "boiling"],
-      "vegetarian_substitutes": ["tofu", "seitan"],
+      "vegetarian_substitutes": ["tofu", "seitan", "jackfruit"],
       "time_to_cook": {
         "grilling": 10,
         "baking": 20
@@ -33,7 +33,7 @@
       "primary_methods": ["grill", "grilling", "braise", "braising", "stew", "stewing", "broil", "broiling",
       "stir-frying", "stir frying", "stir fry", "stir-fry", "barbecue", "barbeque", "pan frying", "pan-frying",
       "pan fry", "pan-fry", "pan sear", "pan-sear", "pan-searing", "pan searing"],
-      "vegetarian_substitutes": ["tofu", "seitan"],
+      "vegetarian_substitutes": ["tofu", "seitan", "jackfruit"],
       "time_to_cook": {
         "grilling": 10,
         "baking": 20
@@ -52,7 +52,7 @@
       "slabs baby back pork ribs", ""],
       "primary_methods": ["roast", "roasting", "brine", "brining", "spatchcock", "spatchcocking", "smoke",
       "smoking", "grill", "grilling", "deep fry", "deep frying", "fry", "frying"],
-      "vegetarian_substitutes": ["seitan", "tofu"],
+      "vegetarian_substitutes": ["seitan", "tofu", "jackfruit"],
       "time_to_cook": {
         "grilling": 10,
         "baking": 20
@@ -68,7 +68,7 @@
       "breast", "lamb flank", "lamb neck"],
       "primary_methods": ["roast", "roasting", "braise", "braising", "stew", "stewing", "barbeque", "barbecue", "bbq",
       "grill", "grilling", "pan fry", "pan-fry", "pan frying", "pan-frying"],
-      "vegetarian_substitutes": ["seitan", "tofu"],
+      "vegetarian_substitutes": ["seitan", "tofu", "jackfruit"],
       "time_to_cook": {
         "grilling": 10,
         "baking": 20
@@ -86,7 +86,7 @@
       "geese"],
       "primary_methods": ["roast", "roasting", "braise", "braising", "stew", "stewing", "barbeque", "barbecue", "bbq",
       "grill", "grilling", "pan fry", "pan-fry", "pan frying", "pan-frying"],
-      "vegetarian_substitutes": ["seitan", "tofu"],
+      "vegetarian_substitutes": ["seitan", "tofu", "jackfruit"],
       "time_to_cook": {
         "grilling": 10,
         "baking": 20
@@ -100,7 +100,7 @@
       "related_names": ["venison stew meat", "venison stew", "backstrap", "venisons", "deer", "deers"],
       "primary_methods": ["roast", "roasting", "braise", "braising", "stew", "stewing", "barbeque", "barbecue", "bbq",
       "grill", "grilling", "pan fry", "pan-fry", "pan frying", "pan-frying"],
-      "vegetarian_substitutes": ["seitan", "tofu"],
+      "vegetarian_substitutes": ["seitan", "tofu", "jackfruit"],
       "time_to_cook": {
         "grilling": 10,
         "baking": 20
@@ -115,7 +115,7 @@
         "lamb saddle"],
       "primary_methods": ["roast", "roasting", "braise", "braising", "stew", "stewing", "barbeque", "barbecue", "bbq",
       "grill", "grilling", "pan fry", "pan-fry", "pan frying", "pan-frying"],
-      "vegetarian_substitutes": ["seitan", "tofu"],
+      "vegetarian_substitutes": ["seitan", "tofu", "jackfruit"],
       "time_to_cook": {
         "grilling": 10,
         "baking": 20
@@ -129,7 +129,7 @@
       "related_names": ["eggs", "large eggs", "medium eggs", "small eggs", "egg", "egg white"],
       "primary_methods": ["bake", "baked", "hard-boiled", "hard boiled",
         "hard-cooked", "hard cooked", "fried", "poached", "baste", "poach", "scramble", "scrambled"],
-      "vegetarian_substitutes": ["seitan", "tofu"],
+      "vegetarian_substitutes": ["seitan", "tofu", "jackfruit"],
       "time_to_cook": {
         "grilling": 10,
         "baking": 20
@@ -157,6 +157,36 @@
       "food_category": "Breads",
       "related_names": ["wheat gluten", "gluten", "wheat meat", "gluten meat", "vital wheat gluten", "seitan",
       "chicken style seitan", "vital wheat gluten flour"],
+      "primary_methods": ["grill", "grilling", "braise", "braising", "stew", "stewing", "broil", "broiling",
+      "stir-frying", "stir frying", "stir fry", "stir-fry", "barbecue", "barbeque", "pan frying", "pan-frying",
+      "pan fry", "pan-fry", "pan sear", "pan-sear", "pan-searing", "pan searing"],
+      "vegetarian_substitutes": ["beef", "chicken", "pork", "rabbit", "duck", "venison", "lamb", "turkey"],
+      "time_to_cook": {
+        "grilling": 10,
+        "baking": 20
+      },
+      "avg_calorie": 150
+    },
+  "jackfruit":
+    {
+      "unit": "pound",
+      "food_category": "fruit",
+      "related_names": ["jackfruit"],
+      "primary_methods": ["grill", "grilling", "braise", "braising", "stew", "stewing", "broil", "broiling",
+      "stir-frying", "stir frying", "stir fry", "stir-fry", "barbecue", "barbeque", "pan frying", "pan-frying",
+      "pan fry", "pan-fry", "pan sear", "pan-sear", "pan-searing", "pan searing"],
+      "vegetarian_substitutes": ["beef", "chicken", "pork", "rabbit", "duck", "venison", "lamb", "turkey"],
+      "time_to_cook": {
+        "grilling": 10,
+        "baking": 20
+      },
+      "avg_calorie": 150
+    },
+  "jackfruit":
+    {
+      "unit": "pound",
+      "food_category": "fruit",
+      "related_names": ["jackfruit"],
       "primary_methods": ["grill", "grilling", "braise", "braising", "stew", "stewing", "broil", "broiling",
       "stir-frying", "stir frying", "stir fry", "stir-fry", "barbecue", "barbeque", "pan frying", "pan-frying",
       "pan fry", "pan-fry", "pan sear", "pan-sear", "pan-searing", "pan searing"],

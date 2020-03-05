@@ -1,21 +1,35 @@
+from __future__ import print_function
+from nltk.stem.porter import *
 import requests
 import re
 from bs4 import BeautifulSoup
 from fractions import Fraction
 import nltk
 from nltk.tokenize import sent_tokenize
+from nltk.corpus import stopwords
 import spacy
 import string
 import json
 import random
-# import transformations
+import transformations
+import copy
 
 nlp = spacy.load("en_core_web_sm")
+stemmer = PorterStemmer()
+stop_words = set(stopwords.words('english'))
 
-measurement = ["cup", "cups", "tablespoon", "tablespoons", "teaspoon", "teaspoons", "spoon", "cloves", "jars", "pound",
-               "pounds", "pinch", "links", "link", "package", "can", "cans", "ounce", "ounces"]
+HEALTHY_MODIFIER = ["lean", "extra-lean", "extra lean", "lowfat", "low-fat", "low fat", "low-calorie", "low calorie",
+                    "diet", "vital", "fresh", "extra-virgin", "gluten", "wheat"]
 
-# TODO: Add more primary cooking methods, including present tense of them (Ex: "grilling")
+OTHER_MODIFIER = ["heinz®", "oven-ready", "heinz"]
+
+TYPES = ['meats', 'pasta', 'oils', 'sauces', 'vegetables', 'herbs', 'cheeses']
+
+SIZE_MODIFIER = ["extra-large", "large", "medium", "med", "small", "good-sized", "whole", "half", "halves"]
+
+TYPE_MODIFIER = ["dry", "dried", "ground", "crushed", "flaked", "frozen", "fresh", "grated", "diced", "peeled",
+                 "finely"]
+
 PRIMARY_COOKING_METHODS = ['bake', 'steam', 'grill', 'roast', 'boil', 'fry', 'barbeque', 'baste', 'broil', 'poach',
                            'freeze', 'cure', 'saute', 'cook']
 
@@ -32,19 +46,19 @@ TOOLS = ['pan', 'bowl', 'baster', 'saucepan', 'knife', 'oven', 'beanpot', 'chip 
          'roasting rack', 'saucepansauciersaute pan', 'splayed saute pan', 'souffle dish', 'springform pan', 'stockpot',
          'tajine', 'tube panwok',
          'wonder pot', 'pot', 'apple corer', 'apple cutter', 'baster', 'biscuit cutter', 'biscuit press', 'baking dish',
-         'bread knife', 'browning tray',
+         'bread knife', 'browning tray', 'layer',
          'butter curler', 'cake and pie server', 'cheese knife', 'cheesecloth', 'knife', 'cherry pitter', 'chinoise',
-         'cleaver', 'corkscrew',
+         'cleaver', 'corkscrew', 'simmer',
          'cutting board', 'dough scraper', 'egg poacher', 'egg separator', 'egg slicer', 'egg timer', 'fillet knife',
          'fish scaler', 'fish slice',
          'flour sifter', 'food mill', 'funnel', 'garlic press', 'grapefruit knife', 'grater', 'gravy strainer', 'ladle',
-         'lame', 'lemon reamer',
+         'lame', 'lemon reamer', 'casserole',
          'lemon squeezer', 'mandoline', 'mated colander pot', 'measuring cup', 'measuring spoon', 'grinder',
          'tenderiser', 'thermometer', 'melon baller',
          'mortar and pestle', 'nutcracker', 'nutmeg grater', 'oven glove', 'blender', 'fryer', 'pastry bush',
          'pastry wheel', 'peeler', 'pepper mill',
          'pizza cutter', 'masher', 'potato ricer', 'pot-holder', 'rolling pin', 'salt shaker', 'sieve', 'spoon', 'fork',
-         'spatula', 'spider', 'tin opener',
+         'spatula', 'spider', 'tin opener', 'remove',
          'tongs', 'whisk', 'wooden spoon', 'zester', 'microwave', 'cylinder', 'aluminum foil', 'steamer',
          'broiler rack', 'grate', 'shallow glass dish', 'wok',
          'dish', 'broiler tray', 'slow cooker', 'plate']
@@ -52,6 +66,15 @@ TOOLS = ['pan', 'bowl', 'baster', 'saucepan', 'knife', 'oven', 'beanpot', 'chip 
 TIME = ['seconds', 'minutes', 'hour']
 
 TEMP = ['degrees']
+
+TYPE_WORDS = []
+
+
+measurement = ["cup", "cups", "tablespoon", "tablespoons", "teaspoon", "teaspoons", "spoon", "cloves", "jars", "pound",
+               "pounds", "pinch", "links", "link", "package", "can", "cans", "ounce", "ounces"]
+
+# TODO: Add more primary cooking methods, including present tense of them (Ex: "grilling")
+
 
 
 class RecipeFetcher:
@@ -82,12 +105,15 @@ class RecipeFetcher:
         val = val.replace(", drained", "")
         val = val.replace(", cubed", "")
         val = val.replace(", cut into 8 pieces", "")
+        adj = []
         ing = {
+            "type": "",
             "prep": "",
             "qty": 0,
             "alt_qty": "",
             "unit": "",
             "ingredient": "",
+            "descriptor": "",
             "json_obj": {}
         }
         qty = float(0)
@@ -95,8 +121,10 @@ class RecipeFetcher:
         sp = comma_splice[0].split()
         tag = nltk.pos_tag(sp)
         for i in tag:
-            if "VB" in i[1]:
+            if "VBD" in i[1] or "VBN" in i[1]:
                 ing["prep"] = i[0]
+            if "JJ" in i[1]:
+                adj.append(i[0])
         str = ""
         str1 = ""
         for j in sp:
@@ -123,24 +151,120 @@ class RecipeFetcher:
         ing["ingredient"] = str.strip()
         ing["alt_qty"] = str1.strip()
         ing["qty"] = qty
+        if adj:
+            if adj[0] != str.strip() and "(" not in adj[0]:
+                ing["descriptor"] = adj[0]
         return ing
 
+    def closest(lst, K):
+        return lst[min(range(len(lst)), key=lambda i: abs(lst[i] - K))]
+
     def parse_directions(self):
+        for i in range(len(self.results['ingredients'])):
+            ing = self.results['ingredients'][i]['ingredient'].lower()
+            for t in TYPE_MODIFIER:
+                if t in ing:
+                    ing = ing.replace(t, "")
+            for h in HEALTHY_MODIFIER:
+                if h in ing:
+                    ing = ing.replace(h, "")
+            for s in SIZE_MODIFIER:
+                if s in ing:
+                    ing = ing.replace(s, "")
+            for b in OTHER_MODIFIER:
+                if b in ing:
+                    ing = ing.replace(b, "")
+            ing = ing.strip()
+            ing = ing.strip(string.punctuation)
+            self.results['ingredients'][i]['ingredient'] = ing
+
+        for i in self.results['ingredients']:
+            if ' and' in i['ingredient']:
+                rep = i['ingredient'].split(' and')
+            elif ' or' in i['ingredient']:
+                rep = i['ingredient'].split(' or')
+            else:
+                continue
+
+            if rep[1] == "":
+                i['ingredient'] = rep[0].strip()
+                i['ingredient'] = i['ingredient'].strip(string.punctuation)
+            else:
+                i_new = copy.deepcopy(i)
+                i['ingredient'] = rep[0].strip()
+                i['ingredient'] = i['ingredient'].strip(string.punctuation)
+                i_new['ingredient'] = rep[1].strip()
+                i_new['ingredient'] = i_new['ingredient'].strip(string.punctuation)
+                self.results['ingredients'].append(i_new)
+
+        with open('food_reps.json') as f:
+            foods = json.load(f)
+
+        for ing in self.results['ingredients']:
+            if 'juice' in ing['ingredient']:
+                ing['type'] = 'juice'
+            elif 'paste' in ing['ingredient']:
+                ing['type'] = 'paste'
+            elif 'sauce' in ing['ingredient']:
+                ing['type'] = 'sauce'
+            elif 'oil' in ing['ingredient'] or 'butter' in ing['ingredient']:
+                ing['type'] = 'oil'
+            else:
+                for typ in TYPES:
+                    if ing['type'] == "":
+                        for food in foods[typ]:
+                            if ing['ingredient'] in food.split(',')[0]:
+                                ing['type'] = typ
+                                break
+
+        # print(self.results['ingrdients'])
+
         for r in self.results['directions_sentence']:
-            # self.results['directions_data'][r] = {}
             for s in sent_tokenize(r):
+                self.results['directions_data'][s] = {}
+                # print(s)
                 method = {'primary_method': [], 'secondary_method': [], 'tool': [], 'ingredients': []}
+                ingr = []
+                ing_ind = []
                 doc = nlp(s.lower())
                 for ing in self.results['ingredients']:
-                    # print(ing)
-                    if ing['ingredient'] in s.lower():
-                        method['ingredients'].append(ing)
-                    elif ing['json_obj'] != {}:
-                        for related_name in ing['json_obj']['related_names']:
-                            if related_name in s.lower():
-                                method['ingredients'].append(ing)
+                    flag = 0
+                    for word in nltk.word_tokenize(s.lower()):
+                        # if lev.distance(ing['ingredient'], word) <= 2:
+                        if stemmer.stem(ing['ingredient']) in stemmer.stem(word):
+                            # print("1 ", ing['ingredient'], word)
+                            method['ingredients'].append(ing)
+                            ing_ind.append(nltk.word_tokenize(s.lower()).index(word))
+                            # print(ing_ind)
+                            flag += 1
+                            break
+#                     if flag == 0:
+#                         if ing['json_obj'] != {}:
+#                             for related_name in ing['json_obj']['related_names']:
+#                                 if related_name in s.lower() and related_name:
+#                                     method['ingredients'].append(ing)
+#                                     ing_ind.append(nltk.word_tokenize(s.lower()).index(related_name))
+#                                     flag += 1
+
+                    if flag == 0:
+                        tokenize = nltk.word_tokenize(ing['ingredient'])
+                        # print(tokenize)
+                        for i in range(len(tokenize)):
+                            if tokenize[i] not in stop_words and tokenize[i] in nltk.word_tokenize(s.lower()):
+                                # print("2 ", tokenize[i])
+                                ingr.append(ing)
+                                ing_ind.append(nltk.word_tokenize(s.lower()).index(tokenize[i]))
+                                # print(ing_ind)
+                                flag = 0
+                                break
+
                 for token in doc:
+                    # print('token: {}, pos: {}'.format(token.text, token.pos_))
+                    ind = 0
                     if token.pos_ == 'NOUN' or token.pos_ == 'PROPN' or token.pos_ == 'VERB':
+                        for t in TYPE_WORDS:
+                            if t in token.text:
+                                TYPES.append(t)
                         if token.lemma_ in PRIMARY_COOKING_METHODS:
                             if token.lemma_ not in method['primary_method']:
                                 method['primary_method'].append(token.lemma_)
@@ -150,6 +274,7 @@ class RecipeFetcher:
                         elif token.lemma_ in TOOLS:
                             if token.lemma_ not in method['tool']:
                                 method['tool'].append(token.lemma_)
+<<<<<<< HEAD
                     elif token.pos_ == 'NUM' and 'inch' not in token.text:
                         if token.text.isalpha():
                             if not float(Fraction(token.text)).is_integer():
@@ -165,6 +290,39 @@ class RecipeFetcher:
                         except:
                             continue
                 # self.results['directions_data'][r][s] = method
+=======
+                    elif token.pos_ == 'NUM' and 'inch' not in token.text and 'inches' not in token.text and 'in' not in token.text:
+                        # print("NUM ", token.text)
+                        table = str.maketrans('', '', '!"#$%&\'()*+,-.:;<=>?@[]^_`{|}~')
+                        temp = [w.translate(table) for w in s.split(" ")]
+                        ind = temp.index(token.text)
+                        temp_ind = [i for i in ing_ind if i > ind]
+                        if len(temp_ind) > 0:
+                            fin_ind = min(temp_ind)
+                        else:
+                            fin_ind = -1
+                        if re.search(r'\d', token.text) and not float(Fraction(token.text)).is_integer():
+                            typ = s.split()[fin_ind].strip(string.punctuation)
+                            for ing in ingr:
+                                if typ in ing['type'] or typ in ing['ingredient']:
+                                    ing['qty'] = float(Fraction(token.text))
+                            continue
+                        if temp[ind + 1] == 'L':
+                            continue
+                        if temp[ind + 1] in TIME:
+                            method['time'] = [token.text, temp[ind + 1]]
+                        elif (ind + 2) < len(temp) and temp[ind + 2] in TIME:
+                            method['time'] = [token.text, temp[ind + 2]]
+                        elif temp[ind + 1] in TEMP:
+                            method['temp'] = [token.text, temp[ind + 1], temp[ind + 2]]
+                        elif fin_ind >= 0 and re.search(r'\d', token.text):
+                            # print(fin_ind)
+                            typ = stemmer.stem(s.split()[fin_ind].strip(string.punctuation))
+                            # print(typ)
+                            for ing in ingr:
+                                if typ in stemmer.stem(ing['ingredient']) or typ in stemmer.stem(ing['type']):
+                                    ing['qty'] = float(token.text)
+>>>>>>> 03154527a2137e32139c27b91c57eb578204db7d
                 self.results['directions_data'][s] = method
 
     # def search_recipes(self):
@@ -261,8 +419,8 @@ class RecipeFetcher:
         # print(self.results['directions_sentence'])
         # print("\n INGREDIENTS_SENTENCE: \n")
         # print(self.results['ingredients_sentence'])
-        print("\n INGREDIENTS: \n")
-        print(self.results['ingredients'])
+        # print("\n INGREDIENTS: \n")
+        # print(self.results['ingredients'])
 
 
 # Class for transforming the given recipe
@@ -301,25 +459,63 @@ class TransformRecipe:
         for i in ing["ingredients"]:
             i["qty"] = i["qty"] * scaling_factor
 
+        for i in range(len(ing['ingredients_sentence'])):
+            num = 0
+            stri = ''
+            for st in ing['ingredients_sentence'][i].split(' '):
+                flag = 0
+                for imp in st:
+                    if imp.isdigit():
+                        flag = 1
 
-        # print(self.rf.results['ingredients'])
-            # new_ingr.append(i)
-        # print("scaled:", new_ingr)
+                if flag == 1 and flag == 1 and "(" not in st:
+                    num += float(Fraction(st))
+                    stri = stri + ' ' + st
 
-        new_ingredients = {}
-        # print(type(ing))
+            ing['ingredients_sentence'][i] = ing['ingredients_sentence'][i].replace(stri.strip(), str(num*scaling_factor))
+        # print("ing ", ing['ingredients_sentence'])
 
-        # print(ing['directions_data'])
-        for i in ing['directions_data']:
-            val = ing["directions_data"][i]
-            khaak = val['ingredients']
-            for i in ing['ingredients']:
-                for ak in khaak:
-                    if i['ingredient'] == ak['ingredient']:
-                        ratio = i['qty']/ ak['qty'] / scaling_factor
-                        ak['qty'] = ratio * scaling_factor * i['qty']
-                            # new_ingr['qty'] = n['qty']
+        unstop = ["minute", "minutes", "to", "mins", "min", "minutes.","degree","degrees", "-"]
+        tango_lis=[]
+        for mango in self.rf.results['directions_sentence']:
+            tango = mango
+            st = ""
+            sp = tango.split(" ")
+            for sub in range(0, len(sp)):
+                flag = 0
+                sure = 0
+                for j in sp[sub]:
+                    if j.isdigit():
+                        flag = 1
+                        break
+                if flag == 1 and "(" not in sp[sub] and "-" not in sp[sub] and "x" not in sp[sub] and sp[sub + 1] not in unstop:
+                    val = str(float(Fraction(sp[sub])) * scaling_factor)
+                else:
+                    val = sp[sub]
+                st = st + " " + val
+            tango = st.strip()
+            # print("tango scale", tango)
+            temp = nltk.sent_tokenize(tango)
+            temp1 = nltk.sent_tokenize(mango)
+            for cheeku in range(0, len(temp)):
+                h = self.rf.results["directions_data"][temp1[cheeku]]
+                del self.rf.results['directions_data'][temp1[cheeku]]
+                # print("h is", h)
+                self.rf.results["directions_data"][temp[cheeku]] = h
+            tango_lis.append(tango)
+        self.rf.results['directions_sentence']=tango_lis
 
+        # for sent in self.rf.results['directions_sentence']:
+        #     idx = self.rf.results['directions_sentence'].index(sent)
+        #     for r in nltk.sent_tokenize(sent):
+        #         print("r ", r)
+        #         ind = re.findall(r'\d', r)
+        #         print("ind ", ind)
+                # for index in ind:
+                #     if r.split(' ')[ind]
+                #     self.rf.results['directions_sentence'][idx]
+
+        # print("ing ", self.rf.results['ingredients_sentence'])
         self.pretty_printer(substitutes=None)
             # new_ingr.append(i)
         # print("scaled:", new_ingr)
@@ -332,14 +528,16 @@ class TransformRecipe:
         print("2: MEXICAN")
 
         choice = input()
+        substitutes = {}
+
         if choice == '1':
             for s in self.rf.results['directions_data']:
                 val = self.rf.results['directions_data'][s]
                 ingr = val['ingredients']
                 for ing in ingr:
                     if ing['ingredient'] in transformations.to_italian:
-                        s = s.replace(ing['ingredient'], transformations.to_italian[ing['ingredient']][0])
-                        ing['ingredient'] = transformations.to_italian[ing['ingredient']][0]
+                        rep_ing = random.choice(transformations.to_italian[ing['ingredient']])
+                        substitutes[ing['ingredient']] = rep_ing
 
         if choice == '2':
             for s in self.rf.results['directions_data']:
@@ -347,22 +545,98 @@ class TransformRecipe:
                 ingr = val['ingredients']
                 for ing in ingr:
                     if ing['ingredient'] in transformations.to_mexican:
-                        s = s.replace(ing['ingredient'], transformations.to_italian[ing['ingredient']][0])
-                        ing['ingredient'] = transformations.to_italian[ing['ingredient']][0]
+                        rep_ing = random.choice(transformations.to_mexican[ing['ingredient']])
+                        substitutes[ing['ingredient']] = rep_ing
 
-    def transform_from_dict(self, change):
-        for s in self.rf.results['directions_data']:
-            val = self.rf.results['directions_data'][s]
-            ingr = val['ingredients']
-            for ing in ingr:
-                if ing['ingredient'] in change:
-                    s = s.replace(ing['ingredient'], change[ing['ingredient']])
-                    ing['ingredient'] = change[ing['ingredient']]
+        self.pretty_printer_new(substitutes=substitutes)
+        self.pretty_printer(substitutes=substitutes)
 
-        self.pretty_printer(substitutes=change)
+
+    def pretty_printer_new(self, substitutes):
+        new_dir = []
+        new_ing = []
+        # print("dir data")
+        # print(self.rf.results['directions_data'])
+        # print("new values")
+        for mango in self.rf.results['directions_sentence']:
+            tango = mango
+            for sub in substitutes:
+                if sub in mango:
+                    tango = tango.replace(sub, substitutes[sub])
+            if 1:
+                temp = nltk.sent_tokenize(tango)
+                temp1 = nltk.sent_tokenize(mango)
+                for cheeku in range(0, len(temp)):
+                    h = self.rf.results["directions_data"][temp1[cheeku]]
+                    del self.rf.results['directions_data'][temp1[cheeku]]
+                    # print("h is", h)
+                    self.rf.results["directions_data"][temp[cheeku]] = h
+            # print("tnago",tango,"   mango ",mango)
+            # self.rf.results["directions_data"][tango]=self.rf.results["directions_data"][mango]
+            # del self.rf.results['directions_data'][mango]
+            new_dir.append(tango)
+        # print(self.rf.results['directions_sentence'])
+        self.rf.results["directions_sentence"] = new_dir
+        # print(new_dir)
+        # print(self.rf.results['directions_sentence'])
+        # print("new dir")
+        # print(self.rf.results["directions_data"])
+
+        # for cheeku in self.rf.results["directions_data"]:
+
+        for mango in self.rf.results['ingredients_sentence']:
+            tango = mango
+            for sub in substitutes:
+                if sub in mango:
+                    tango = tango.replace(sub, substitutes[sub])
+            new_ing.append(tango)
+        # print(self.rf.results['ingredients_sentence'])
+        self.rf.results["ingredients_sentence"] = new_ing
+        # print(new_ing)
+        # print(self.rf.results['ingredients_sentence'])
+        # print("new ing")
+
+        for mandarin in self.rf.results['ingredients']:
+            for sub in substitutes:
+                if sub in mandarin["ingredient"]:
+                    mandarin["ingredient"] = mandarin["ingredient"].replace(sub, substitutes[sub])
+
+        # print("mandarin")
+        # print(self.rf.results["ingredients"])
+        # print(self.rf.results['directions_data'])
+        # print(substitutes)
+
+
+    # def transform_from_dict(self, change):
+    #     for s in self.rf.results['directions_data']:
+    #         val = self.rf.results['directions_data'][s]
+    #         ingr = val['ingredients']
+    #         for ing in ingr:
+    #             if ing['ingredient'] in change:
+    #                 s = s.replace(ing['ingredient'], change[ing['ingredient']])
+    #                 ing['ingredient'] = change[ing['ingredient']]
+    #
+    #     self.pretty_printer(substitutes=change)
 
     def verbosity(self):
-        pass
+        print("\n INGREDIENTS: \n")
+        for i in range(len(self.rf.results['ingredients_sentence'])):
+            print(self.rf.results['ingredients_sentence'][i])
+            print(self.rf.results['ingredients'][i])
+
+        print("\n DIRECTIONS: \n")
+
+        for i in range(len(self.rf.results['directions_sentence'])):
+            print("STEP: ", self.rf.results['directions_sentence'][i])
+            print('\n')
+            temp = nltk.sent_tokenize(self.rf.results['directions_sentence'][i])
+            count = 0
+            count_max = len(temp)
+            for j in range(count_max):
+                print("SUBSTEP {}: {}".format(j+1, temp[j]))
+                print(self.rf.results['directions_data'][temp[j]])
+                print('\n')
+
 
     def convert(self, val):
         return str(val)
@@ -374,7 +648,8 @@ class TransformRecipe:
         with open('meat_replacement.json') as f:
             hel_meat = json.load(f)
 
-        nutr_api = "https://api.edamam.com/api/nutrition-data?app_id=26fb2b38&app_key=bd164bbb96197716e0e8827cc0aaaf43&ingr="
+        print("Transforming recipe...")
+        nutr_api = "https://api.edamam.com/api/nutrition-data?app_id=c7972ed6&app_key=cfc832cb9cbd4cd95e0182ecef7eda4f&ingr="
 
         replace = {}
         for ing in self.rf.results["ingredients"]:
@@ -388,71 +663,72 @@ class TransformRecipe:
                 # print("found", mod_str)
                 search_url = nutr_api + self.convert(ing['qty']) + " " + ing['unit'] + " " + ing["ingredient"]
                 # if no result found then used the modified one
-                print("search_url", search_url)
+                # print("search_url", search_url)
                 nut_html = requests.get(search_url)
-                print("nut_html",nut_html)
+                # print("nut_html",nut_html)
                 nut_graph = BeautifulSoup(nut_html.content, 'html.parser')
                 # print("nutrition", nut_graph)
-                print(type(self.convert(nut_graph)))
+                # print(type(self.convert(nut_graph)))
                 cal = json.loads(self.convert(nut_graph))
-                print("nutr", cal["calories"])
+                # print("nutr", cal["calories"])
                 low = cal["calories"]
 
                 for i in hel_meat:
                     search_url = nutr_api + self.convert(ing['qty']) + " " + ing['unit'] + " " + i
-                    print("search_url", search_url)
+                    # print("search_url", search_url)
                     nut_html = requests.get(search_url)
                     nut_graph = BeautifulSoup(nut_html.content, 'html.parser')
-                    print("nutrition", nut_graph)
+                    # print("nutrition", nut_graph)
                     cal = (json.loads(self.convert(nut_graph)))
-                    print("nutr", type(cal["calories"]))
+                    # print("nutr", type(cal["calories"]))
                     # print("check",i["primary_methods"])
                     # and pmc in hel_meat[i]["primary_methods"]
                     if diff == "toHealthy":
                         if (cal["calories"]) < low and cal["calories"] != 0:
-                            print("lower found ", cal["calories"], " ", i)
+                            # print("lower found ", cal["calories"], " ", i)
                             replace[ing["ingredient"]] = i
                             break
                     else:
                         if (cal["calories"]) > low and cal["calories"] != 0:    # and pmc in hel_meat[i]["primary_methods"]:
-                            print("upper found ", cal["calories"], " ", i)
+                            # print("upper found ", cal["calories"], " ", i)
                             replace[ing["ingredient"]] = i
                             break
 
             elif mod_str in dat:
-                print("found", mod_str)
+                # print("found", mod_str)
                 search_url = nutr_api + self.convert(ing['qty']) + " " + ing['unit'] + " " + ing["ingredient"]
                 # if no result found then used the modified one
-                print("search_url", search_url)
+                # print("search_url", search_url)
                 nut_html = requests.get(search_url)
                 nut_graph = BeautifulSoup(nut_html.content, 'html.parser')
-                print("nutrition", nut_graph)
+                # print("nutrition", nut_graph)
                 cal = (json.loads(self.convert(nut_graph)))
-                print("nutr", cal["calories"])
+                # print("nutr", cal["calories"])
                 low = cal["calories"]
                 for found in dat[mod_str]:
                     # v=""+ing['qty']
                     # print(type(v))
-                    print("found", found)
+                    # print("found", found)
                     found = found.replace("_", " ")
                     search_url = nutr_api + self.convert(ing['qty']) + " " + ing['unit'] + " " + found
-                    print("search_url", search_url)
+                    # print("search_url", search_url)
                     nut_html = requests.get(search_url)
                     nut_graph = BeautifulSoup(nut_html.content, 'html.parser')
-                    print("nutrition", nut_graph)
+                    # print("nutrition", nut_graph)
                     cal = (json.loads(self.convert(nut_graph)))
-                    print("nutr", type(cal["calories"]))
+                    # print("nutr", type(cal["calories"]))
                     if diff == "toHealthy":
                         if (cal["calories"]) < low and cal["calories"] != 0:
-                            print("lower found ", cal["calories"], " ", found)
+                            # print("lower found ", cal["calories"], " ", found)
                             replace[ing["ingredient"]] = found
                             break
                     else:
                         if (cal["calories"]) > low and cal["calories"] != 0:
-                            print("lower found ", cal["calories"], " ", found)
+                            # print("lower found ", cal["calories"], " ", found)
                             replace[ing["ingredient"]] = found
                             break
 
+        self.pretty_printer_new(substitutes=replace)
         self.pretty_printer(substitutes=replace)
 
     def modifier(self, ing):
@@ -534,18 +810,18 @@ class TransformRecipe:
         foods = self.load_food_properties()
         # Loop through the parsed data (key: overall step, value: dictionaries of that step tokenized into each sentence
         # for direction, direction_tokens in self.rf.results['directions_data'].items():
-            # print("\n")
-            # print("Direction: {direction}".format(direction=direction))
-            # print("\n")
-            # print("Directions_Data: {d_data}".format(d_data=self.rf.results['directions_data']))
-            # print("\n")
-            # print("Directions_Sentence: {d_sentence}".format(d_sentence=self.rf.results['directions_sentence']))
-            # print("\n")
-            # print("Direction_Tokens: {direction_tokens}".format(direction_tokens=direction_tokens))
-            # print("\n")
-            # directions_idx = self.rf.results['directions_sentence'].index(direction)
-            # Loop through each tokenized sentence (key: tokenized sentence, value: dictionaries of data found
-            # such as primary_method, tool, ingredients, etc
+        # print("\n")
+        # print("Direction: {direction}".format(direction=direction))
+        # print("\n")
+        # print("Directions_Data: {d_data}".format(d_data=self.rf.results['directions_data']))
+        # print("\n")
+        # print("Directions_Sentence: {d_sentence}".format(d_sentence=self.rf.results['directions_sentence']))
+        # print("\n")
+        # print("Direction_Tokens: {direction_tokens}".format(direction_tokens=direction_tokens))
+        # print("\n")
+        # directions_idx = self.rf.results['directions_sentence'].index(direction)
+        # Loop through each tokenized sentence (key: tokenized sentence, value: dictionaries of data found
+        # such as primary_method, tool, ingredients, etc
         for tokenized_direction, props in self.rf.results['directions_data'].items():
             # print("Tokenized_Direction: {tokenized_direction}".format(tokenized_direction=tokenized_direction))
             # print("\n")
@@ -600,7 +876,19 @@ class TransformRecipe:
             self.rf.results['directions_sentence'][directions_idx] = modified_direction
 
         # self.remove_common_properities(directions_idx=directions_idx)
+
+        # self.pretty_printer_new(substitutes=substitutes)
+        u = list(self.rf.results['directions_data'].keys())
+        count = 0
+        for d_sent in self.rf.results['directions_sentence']:
+            toks = nltk.sent_tokenize(d_sent)
+            for sent in range(len(toks)):
+                h = self.rf.results['directions_data'][u[count]]
+                del self.rf.results['directions_data'][u[count]]
+                self.rf.results['directions_data'][toks[sent]] = h
+                count += 1
         return substitutes, foods
+
 
     @staticmethod
     # This method is for ensuring that the correct full name is replaced
@@ -640,7 +928,7 @@ class TransformRecipe:
     def master_transform(self):
         # to_or_from_vegetarian needs to be marked True for meat -> vegetarian and False for opposite
         substitutes, foods_db = self.transform_directions()
-        print(self.rf.results['directions_sentence'])
+        # print(self.rf.results['directions_sentence'])
         self.transform_ingredients(substitutes=substitutes, foods_db=foods_db)
         self.pretty_printer(substitutes=substitutes)
 
@@ -654,8 +942,10 @@ class TransformRecipe:
         for ingredient in self.rf.results['ingredients_sentence']:
             print(ingredient)
         print("\n DIRECTIONS: \n")
+        count = 0
         for direction in self.rf.results['directions_sentence']:
-            print(direction)
+            print("Step %s: %s" % (count,  direction))
+            count += 1
 
 
 def main():
@@ -666,8 +956,8 @@ def main_util():
     print("HI! PLEASE ENTER A RECIPE URL")
     user_url = input()
     transform = TransformRecipe(url=user_url)
+    transform.load_recipe()
     while True:
-        transform.load_recipe()
         print("PLEASE ENTER ONE OF THE FOLLOWING CHOICES:")
         print("1: TRANSFORM TO NON-VEG")
         print("2: TRANSFORM TO VEG")
@@ -705,9 +995,12 @@ def main_util():
             user_url = input()
             transform = TransformRecipe(url=user_url)
             transform.load_recipe()
-        else:
+        elif user_choice == 10:
             print("BON APPETIT :D")
             break
+        else:
+            print("PLEASE ENTER A VALID NUMBER")
+            continue
 
 
 if __name__ == "__main__":

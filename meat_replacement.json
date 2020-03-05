@@ -25,7 +25,7 @@
     {
       "unit": "pound",
       "food_category": "meat",
-      "related_names": ["pounds lean ground beef", "lean ground beef", "ground beef",
+      "related_names": ["lean ground beef", "ground beef",
         "beef chuck", "chuck", "shank", "beef shank", "beef flank", "flank", "beef brisket",
         "brisket", "beef ribs", "beef rib", "ribs", "rib", "beef sirloin", "sirloin", "beef loin", "loin",
         "beef tongue", "tongue", "beef neck", "neck", "beef knuckle", "knuckle", "skirt steak", "steak",

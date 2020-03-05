@@ -238,13 +238,13 @@ class RecipeFetcher:
                             # print(ing_ind)
                             flag += 1
                             break
-                    if flag == 0:
-                        if ing['json_obj'] != {}:
-                            for related_name in ing['json_obj']['related_names']:
-                                if related_name in s.lower() and related_name:
-                                    method['ingredients'].append(ing)
-                                    ing_ind.append(nltk.word_tokenize(s.lower()).index(related_name))
-                                    flag += 1
+#                     if flag == 0:
+#                         if ing['json_obj'] != {}:
+#                             for related_name in ing['json_obj']['related_names']:
+#                                 if related_name in s.lower() and related_name:
+#                                     method['ingredients'].append(ing)
+#                                     ing_ind.append(nltk.word_tokenize(s.lower()).index(related_name))
+#                                     flag += 1
 
                     if flag == 0:
                         tokenize = nltk.word_tokenize(ing['ingredient'])

@@ -8,7 +8,7 @@ import spacy
 import string
 import json
 import random
-import transformations
+# import transformations
 
 nlp = spacy.load("en_core_web_sm")
 
@@ -69,6 +69,7 @@ class RecipeFetcher:
             "directions_data": {}
         }
         self.url = url
+        self.already_scraped = False
 
     def split_ingredient(self, val):
         val = val.replace("or to taste", "")
@@ -80,6 +81,7 @@ class RecipeFetcher:
         val = val.replace(", drained and sliced into large chunks", "")
         val = val.replace(", drained", "")
         val = val.replace(", cubed", "")
+        val = val.replace(", cut into 8 pieces", "")
         ing = {
             "prep": "",
             "qty": 0,
@@ -89,7 +91,8 @@ class RecipeFetcher:
             "json_obj": {}
         }
         qty = float(0)
-        sp = val.split()
+        comma_splice = val.split(', ')
+        sp = comma_splice[0].split()
         tag = nltk.pos_tag(sp)
         for i in tag:
             if "VB" in i[1]:
@@ -115,6 +118,8 @@ class RecipeFetcher:
                 elif j not in ing["prep"]:
                     str = str + " " + j
 
+        if str == '':
+            str = "Not Found"
         ing["ingredient"] = str.strip()
         ing["alt_qty"] = str1.strip()
         ing["qty"] = qty
@@ -122,6 +127,7 @@ class RecipeFetcher:
 
     def parse_directions(self):
         for r in self.results['directions_sentence']:
+            # self.results['directions_data'][r] = {}
             for s in sent_tokenize(r):
                 method = {'primary_method': [], 'secondary_method': [], 'tool': [], 'ingredients': []}
                 doc = nlp(s.lower())
@@ -145,7 +151,7 @@ class RecipeFetcher:
                             if token.lemma_ not in method['tool']:
                                 method['tool'].append(token.lemma_)
                     elif token.pos_ == 'NUM' and 'inch' not in token.text:
-                        if not float(Fraction(token.text)).is_integer():
+                        if token.text.isalpha() or not float(Fraction(token.text)).is_integer():
                             continue
                         table = str.maketrans('', '', string.punctuation)
                         temp = [w.translate(table) for w in s.split()]
@@ -154,6 +160,7 @@ class RecipeFetcher:
                             method['time'] = [token.text, temp[ind + 1]]
                         elif temp[ind + 1] in TEMP:
                             method['temp'] = [token.text, temp[ind + 1], temp[ind + 2]]
+                # self.results['directions_data'][r][s] = method
                 self.results['directions_data'][s] = method
 
     # def search_recipes(self):
@@ -200,27 +207,46 @@ class RecipeFetcher:
 
     @staticmethod
     def load_food_properties():
-        with open('food_properties.json') as f:
+        with open('meat_replacement.json') as f:
             foods = json.load(f)
             return foods
 
     def compare_to_db(self):
         foods = self.load_food_properties()
         for ingredient in self.results['ingredients']:
-            print(ingredient)
             for food_key, prop in foods.items():
                 if prop['related_names']:
                     if ingredient['ingredient'] in prop['related_names']:
                         idx = self.results['ingredients'].index(ingredient)
                         self.results['ingredients'][idx]['json_obj'] = prop
                         break
+                    else:
+                        split_found = False
+                        split_ingredient = ingredient['ingredient'].split()
+                        if split_ingredient:
+                            for split in split_ingredient:
+                                if split in prop['related_names']:
+                                    split_found = True
+                                    idx = self.results['ingredients'].index(ingredient)
+                                    self.results['ingredients'][idx]['json_obj'] = prop
+                        if split_found is True:
+                            break
                 if food_key in ingredient['ingredient']:
                     idx = self.results['ingredients'].index(ingredient)
                     self.results['ingredients'][idx]['json_obj'] = prop
                     break
 
     def search_and_scrape(self):
-        self.scrape_recipe(self.url)
+        if self.already_scraped is False:
+            self.scrape_recipe(self.url)
+            self.already_scraped = True
+        else:
+            lis3 = []
+            self.results['directions_data'] = {}
+            for i in self.results['ingredients_sentence']:
+                a = self.split_ingredient(i)
+                lis3.append(a)
+            self.results["ingredients"] = lis3
         self.compare_to_db()
         self.parse_directions()
         # print("\n DIRECTIONS_DATA: \n")
@@ -246,12 +272,12 @@ class TransformRecipe:
         }
         self.food_properties_found = []
         self.rf = RecipeFetcher(url=url)
-        # self.to_or_from_vegetarian = to_or_from_vegetarian
+        self.to_or_from_vegetarian = False
 
     @staticmethod
     # Loads our local DB
     def load_food_properties():
-        with open('food_properties.json') as f:
+        with open('meat_replacement.json') as f:
             foods = json.load(f)
             return foods
 
@@ -272,7 +298,7 @@ class TransformRecipe:
             i["qty"] = i["qty"] * scaling_factor
 
 
-        print(self.rf.results['ingredients'])
+        # print(self.rf.results['ingredients'])
             # new_ingr.append(i)
         # print("scaled:", new_ingr)
 
@@ -465,8 +491,11 @@ class TransformRecipe:
                     ingredient_unit = props['unit']
 
                     # Grab the substitute ingredient name and unit
-                    sub_ingredient_name = substitutes[ing]
-                    sub_ingredient_unit = foods_db[sub_ingredient_name]['unit']
+                    try:
+                        sub_ingredient_name = substitutes[ing]
+                        sub_ingredient_unit = foods_db[sub_ingredient_name]['unit']
+                    except:
+                        continue
 
                     # Replace the ingredient name for the sub ingredient name
                     transformed_ingredient_sentence = ingredient_sentence
@@ -500,71 +529,71 @@ class TransformRecipe:
         ingredient_related_names = {}
         foods = self.load_food_properties()
         # Loop through the parsed data (key: overall step, value: dictionaries of that step tokenized into each sentence
-        for direction, direction_tokens in self.rf.results['directions_data'].items():
-            directions_idx = self.rf.results['directions_sentence'].index(direction)
+        # for direction, direction_tokens in self.rf.results['directions_data'].items():
+            # print("\n")
+            # print("Direction: {direction}".format(direction=direction))
+            # print("\n")
+            # print("Directions_Data: {d_data}".format(d_data=self.rf.results['directions_data']))
+            # print("\n")
+            # print("Directions_Sentence: {d_sentence}".format(d_sentence=self.rf.results['directions_sentence']))
+            # print("\n")
+            # print("Direction_Tokens: {direction_tokens}".format(direction_tokens=direction_tokens))
+            # print("\n")
+            # directions_idx = self.rf.results['directions_sentence'].index(direction)
             # Loop through each tokenized sentence (key: tokenized sentence, value: dictionaries of data found
             # such as primary_method, tool, ingredients, etc
-            for tokenized_direction, props in direction_tokens.items():
-                if props['ingredients'] is not None:
-                    # Loop through all ingredients found within the tokenized sentence
-                    for ingredient in props['ingredients']:
-                        # print(ingredient)
-                        # If ingredient with a need for substitute was not already found
-                        # and ingredient was found in our local DB
-                        if ingredient['ingredient'] not in substitutes and ingredient['json_obj'] != {}:
-                            ingr_data = ingredient['json_obj']
-                            # print(ingr_data)
-                            # Consider only substituting if it's meat
-                            if ingr_data['food_category'] == 'meat' and self.to_or_from_vegetarian is True:
-                                # If the meat in question has related names and it's not in the dictionary
-                                # that stores the (key) meat substitute and (val) related names
-                                if ingr_data['related_names'] != [] and \
-                                        ingredient['ingredient'] not in ingredient_related_names:
-                                    ingredient_related_names[ingredient['ingredient']] = ingr_data['related_names']
-                                substitute_ing = ""
-                                # Loop through vegetarian substitutes for the meat in question
-                                for substitute in ingr_data['vegetarian_substitutes']:
-                                    # If a primary method was found in the tokenized sentence,
-                                    # see if a vegetarian substitute has the same primary method
-                                    if props['primary_method'] != []:
-                                        if props['primary_method'][0] in foods[substitute]['primary_methods']:
-                                            substitute_ing = substitute
-                                # If no substitute was found with the same primary method, choose random substitute
-                                if substitute_ing == "" and ingr_data['vegetarian_substitutes'] is not None:
-                                    substitute_ing = random.choice(ingr_data['vegetarian_substitutes'])
-                                substitutes[ingredient['ingredient']] = substitute_ing
-                            elif ingr_data['food_category'] != 'meat' and self.to_or_from_vegetarian is False:
-                                # If the vegetarian ingredient in question has
-                                # related names and it's not in the dictionary
-                                # that stores the (key) meat and (val) related names
-                                if ingr_data['related_names'] != [] and \
-                                        ingredient['ingredient'] not in ingredient_related_names:
-                                    ingredient_related_names[ingredient['ingredient']] = ingr_data['related_names']
-                                substitute_ing = ""
-                                # Loop through meat substitutes for the ingredient in question
-                                for substitute in ingr_data['vegetarian_substitutes']:
-                                    # If a primary method was found in the tokenized sentence,
-                                    # see if a meat substitute has the same primary method
-                                    if props['primary_method'] != []:
-                                        if props['primary_method'][0] in foods[substitute]['primary_methods']:
-                                            substitute_ing = substitute
-                                # If no substitute was found with the same primary method, choose random substitute
-                                if substitute_ing == "" and ingr_data['vegetarian_substitutes'] is not None:
-                                    substitute_ing = random.choice(ingr_data['vegetarian_substitutes'])
-                                substitutes[ingredient['ingredient']] = substitute_ing
-            # Loop through the dictionary of all items that need to be substituted
+        for tokenized_direction, props in self.rf.results['directions_data'].items():
+            # print("Tokenized_Direction: {tokenized_direction}".format(tokenized_direction=tokenized_direction))
+            # print("\n")
+            # print("Props: {props}".format(props=props))
+            if props['ingredients'] is not None:
+                # Loop through all ingredients found within the tokenized sentence
+                for ingredient in props['ingredients']:
+                    # print(ingredient)
+                    # If ingredient with a need for substitute was not already found
+                    # and ingredient was found in our local DB
+                    if ingredient['ingredient'] not in substitutes and ingredient['json_obj'] != {}:
+                        ingr_data = ingredient['json_obj']
+                        # print(ingr_data)
+                        # Consider only substituting if it's meat
+                        if ingr_data['food_category'] == 'meat' and self.to_or_from_vegetarian is True:
+                            # If the meat in question has related names and it's not in the dictionary
+                            # that stores the (key) meat substitute and (val) related names
+                            if ingr_data['related_names'] != [] and \
+                                    ingredient['ingredient'] not in ingredient_related_names:
+                                ingredient_related_names[ingredient['ingredient']] = ingr_data['related_names']
+                            substitute_ing = ""
+                            # If no substitute was found with the same primary method, choose random substitute
+                            if substitute_ing == "" and ingr_data['vegetarian_substitutes'] is not None:
+                                substitute_ing = random.choice(ingr_data['vegetarian_substitutes'])
+                            substitutes[ingredient['ingredient']] = substitute_ing
+                        elif ingr_data['food_category'] != 'meat' and self.to_or_from_vegetarian is False:
+                            # If the vegetarian ingredient in question has
+                            # related names and it's not in the dictionary
+                            # that stores the (key) meat and (val) related names
+                            if ingr_data['related_names'] != [] and \
+                                    ingredient['ingredient'] not in ingredient_related_names:
+                                ingredient_related_names[ingredient['ingredient']] = ingr_data['related_names']
+                            substitute_ing = ""
+                            # If no substitute was found with the same primary method, choose random substitute
+                            if substitute_ing == "" and ingr_data['vegetarian_substitutes'] is not None:
+                                substitute_ing = random.choice(ingr_data['vegetarian_substitutes'])
+                            substitutes[ingredient['ingredient']] = substitute_ing
+        # Loop through the dictionary of all items that need to be substituted
+        for direction_loop in self.rf.results['directions_sentence']:
+            directions_idx = self.rf.results['directions_sentence'].index(direction_loop)
             for food, sub_food in substitutes.items():
                 # Find the most relative name ("Ground Beef" versus just "Beef")
                 sorted_related_names = self.most_relative_name(ingredient_related_names, food)
                 # If there is a sorted list of related names
                 if sorted_related_names:
                     for sorted_name in sorted_related_names:
-                        if sorted_name in self.rf.results['directions_sentence'][directions_idx] and \
-                                sorted_name.isalpha():
-                            print(sorted_name)
-                            direction = self.rf.results['directions_sentence'][directions_idx]
-                            direction = direction.replace(sorted_name, sub_food)
-                            self.rf.results['directions_sentence'][directions_idx] = direction
+                        alpha_only_sorted_name = sorted_name.replace(' ', '')
+                        if sorted_name in direction_loop and alpha_only_sorted_name.isalpha():
+                            direction_replaced = direction_loop.replace(sorted_name, sub_food)
+                            self.rf.results['directions_sentence'][directions_idx] = direction_replaced
+                            break
+        # self.remove_common_properities(directions_idx=directions_idx)
         return substitutes, foods
 
     @staticmethod
@@ -574,9 +603,21 @@ class TransformRecipe:
         if ingredient_related_names[ingredient]:
             sorted_related_names = sorted(ingredient_related_names[ingredient], key=len, reverse=True)
             sorted_related_names.append('meat')
+            # print(sorted_related_names)
             return sorted_related_names
         return []
 
+    def remove_common_properities(self, directions_idx):
+        if self.to_or_from_vegetarian:
+            common_words = ["remove the grease"]
+        else:
+            common_words = ["Mix"]
+
+        for common_word in common_words:
+            if common_word in self.rf.results['directions_sentence'][directions_idx]:
+                direction = self.rf.results['directions_sentence'][directions_idx]
+                direction = direction.replace(common_word, "")
+                self.rf.results['directions_sentence'][directions_idx] = direction
 
     def load_recipe(self):
         self.rf.search_and_scrape()
@@ -612,22 +653,15 @@ class TransformRecipe:
 
 
 def main():
-    # transform = TransformRecipe(url='https://www.allrecipes.com/recipe/231026/keema-aloo-ground-beef-and-potatoes/?internalSource=staff%20pick&referringId=233&referringContentType=Recipe%20Hub',
-    #                             to_or_from_vegetarian=True)
-    # transform = TransformRecipe(
-    #     url='https://www.allrecipes.com/recipe/18074/marinated-flank-steak/?internalSource=hub%20recipe&referringContentType=Search&clickId=cardslot%204',
-    #     to_or_from_vegetarian=True)
-    # transform = TransformRecipe(url="https://www.allrecipes.com/recipe/241963/seitan-pepperoni/?internalSource=hub%20recipe&referringContentType=Search&clickId=cardslot%202",
-    #                             to_or_from_vegetarian=False)
+    main_util()
+
+
+def main_util():
     print("HI! PLEASE ENTER A RECIPE URL")
     user_url = input()
     transform = TransformRecipe(url=user_url)
-    transform.load_recipe()
-    main_util(transform)
-
-
-def main_util(transform):
     while True:
+        transform.load_recipe()
         print("PLEASE ENTER ONE OF THE FOLLOWING CHOICES:")
         print("1: TRANSFORM TO NON-VEG")
         print("2: TRANSFORM TO VEG")
@@ -643,8 +677,10 @@ def main_util(transform):
         user_choice = input()
         user_choice = int(user_choice)
         if user_choice == 1:
+            transform.to_or_from_vegetarian = False
             transform.master_transform()
         elif user_choice == 2:
+            transform.to_or_from_vegetarian = True
             transform.master_transform()
         elif user_choice == 3:
             transform.transform_cuisine()

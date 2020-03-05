@@ -97,7 +97,7 @@
     {
       "unit": "pound",
       "food_category": "meat",
-      "related_names": ["venison stew meat", "venison stew", "backstrap", "venisons", "deer", "deers"],
+      "related_names": ["venison stew meat", "venison stew", "backstrap", "venisons", "deer", "deers", "venison"],
       "primary_methods": ["roast", "roasting", "braise", "braising", "stew", "stewing", "barbeque", "barbecue", "bbq",
       "grill", "grilling", "pan fry", "pan-fry", "pan frying", "pan-frying"],
       "vegetarian_substitutes": ["seitan", "tofu", "jackfruit"],

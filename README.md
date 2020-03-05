@@ -5,7 +5,7 @@ The required packages are mentioned in the requirements.txt file and can be down
 ```pip install -r requirements.txt```
 
 ABOUT THE IMPLEMENTATION:
-The internal structure used for the transformations is present in the repo as flowcharts with names: 'Ingredients.txt' and 'Recipe.txt'.
+The internal structure used for the transformations is present in the repo as flowcharts with names: 'Recipe.pdf'.
 
 We have implemented the following required tasks:
 * To and from vegetarian 

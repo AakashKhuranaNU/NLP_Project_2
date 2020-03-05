@@ -105,6 +105,7 @@ class RecipeFetcher:
         val = val.replace(", drained", "")
         val = val.replace(", cubed", "")
         val = val.replace(", cut into 8 pieces", "")
+        adj = []
         ing = {
             "type": "",
             "prep": "",
@@ -112,6 +113,7 @@ class RecipeFetcher:
             "alt_qty": "",
             "unit": "",
             "ingredient": "",
+            "descriptor": "",
             "json_obj": {}
         }
         qty = float(0)
@@ -119,8 +121,10 @@ class RecipeFetcher:
         sp = comma_splice[0].split()
         tag = nltk.pos_tag(sp)
         for i in tag:
-            if "VB" in i[1]:
+            if "VBD" in i[1] or "VBN" in i[1]:
                 ing["prep"] = i[0]
+            if "JJ" in i[1]:
+                adj.append(i[0])
         str = ""
         str1 = ""
         for j in sp:
@@ -147,6 +151,9 @@ class RecipeFetcher:
         ing["ingredient"] = str.strip()
         ing["alt_qty"] = str1.strip()
         ing["qty"] = qty
+        if adj:
+            if adj[0] != str.strip() and "(" not in adj[0]:
+                ing["descriptor"] = adj[0]
         return ing
 
     def closest(lst, K):
